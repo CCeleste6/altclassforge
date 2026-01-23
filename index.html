@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Journey Prototype - Playable Version</title>
+    <title>Journey Prototype - Full Game</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
@@ -14,7 +14,6 @@
             --bg-color: #0b0c15; 
             --card-bg: #1e2328;
             --gold: #c8aa6e;     
-            --gold-light: #f0e6d2;
             --blue: #0ac8b9;     
             --red: #ff4444;
             --green: #4cd137;
@@ -33,7 +32,30 @@
             min-height: 100vh;
         }
 
-        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid var(--gold); padding-bottom: 10px; cursor: default; }
+        /* BARRA DE VIDA (NOVIDADE) */
+        .hud-bar {
+            position: fixed; top: 20px; right: 20px; z-index: 100;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border: 2px solid var(--gold);
+            border-radius: 8px;
+            display: none; /* Aparece só quando o jogo começa */
+            align-items: center; gap: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        
+        .hp-container {
+            width: 200px; height: 20px; background: #333;
+            border-radius: 10px; overflow: hidden; border: 1px solid #555;
+        }
+        
+        .hp-fill {
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ff8888);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
 
         /* PAINEL DE CONFIGURAÇÃO */
         .config-panel {
@@ -41,11 +63,9 @@
             border: 1px solid #444;
             padding: 30px;
             border-radius: 8px;
-            width: 100%;
-            max-width: 600px;
+            width: 100%; max-width: 600px;
             box-shadow: 0 0 30px rgba(0,0,0,0.6);
-            z-index: 10;
-            transition: all 0.5s;
+            z-index: 10; transition: all 0.5s;
         }
 
         input, textarea { 
@@ -59,99 +79,74 @@
             color: #1a1a1a; font-weight: bold; border: 1px solid var(--gold);
             padding: 12px 25px; border-radius: 4px; cursor: pointer;
             text-transform: uppercase; letter-spacing: 1px;
-            width: 100%; margin-bottom: 10px;
-            transition: all 0.2s;
+            width: 100%; margin-bottom: 10px; transition: all 0.2s;
         }
-        button:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(200, 170, 110, 0.3); }
+        button:hover { filter: brightness(1.2); transform: translateY(-2px); }
         .btn-demo { background: #333; color: #aaa; border: 1px solid #555; }
 
-        /* MAPA HORIZONTAL */
+        /* MAPA */
         #game-map-container {
-            width: 100%;
-            overflow-x: auto; 
-            padding: 50px 20px;
-            display: none; 
-            white-space: nowrap; 
-            scrollbar-width: thin;
-            scrollbar-color: var(--gold) var(--bg-color);
+            width: 100%; overflow-x: auto; padding: 50px 20px;
+            display: none; white-space: nowrap; 
+            scrollbar-width: thin; scrollbar-color: var(--gold) var(--bg-color);
         }
 
         .map-wrapper { display: inline-flex; align-items: center; gap: 40px; padding-bottom: 20px; }
 
         .node-card {
-            display: inline-block;
-            vertical-align: top;
-            width: 220px;
-            white-space: normal;
-            background: var(--card-bg);
-            border: 2px solid #444;
-            border-radius: 8px;
-            padding: 20px;
-            position: relative;
-            transition: transform 0.3s, border-color 0.3s;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            cursor: pointer;
-            text-align: center;
+            display: inline-block; vertical-align: top; width: 220px;
+            white-space: normal; background: var(--card-bg);
+            border: 2px solid #444; border-radius: 8px; padding: 20px;
+            position: relative; transition: transform 0.3s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); cursor: pointer; text-align: center;
         }
         
-        .node-card:hover { transform: translateY(-15px) scale(1.05); border-color: var(--gold); cursor: pointer; }
-        .node-card:active { transform: scale(0.95); }
+        .node-card:hover { transform: translateY(-10px); border-color: var(--gold); }
+        
+        /* Estado: COMPLETO (Verde) */
+        .node-cleared { border-color: var(--green) !important; opacity: 0.7; filter: grayscale(0.5); }
+        .node-cleared::after {
+            content: "✔ DERROTADO"; position: absolute; top: 10px; right: 10px;
+            font-size: 0.7rem; background: var(--green); color: #000; padding: 2px 5px; border-radius: 4px; font-weight: bold;
+        }
 
         .node-icon {
             width: 60px; height: 60px; background: #111; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 30px; margin: 0 auto 15px auto;
             border: 2px solid var(--gold);
-            box-shadow: 0 0 15px rgba(200, 170, 110, 0.2);
         }
 
-        .boss-card { border-color: var(--red); background: linear-gradient(180deg, #2a1a1a, #1a0a0a); }
-        .boss-card .node-icon { border-color: var(--red); box-shadow: 0 0 20px var(--red); }
-
+        .boss-card .node-icon { border-color: var(--red); box-shadow: 0 0 15px var(--red); }
         .connector { display: inline-block; width: 40px; height: 2px; background: #555; margin: 0 -10px; }
 
-        /* --- MODAL DE BATALHA (O NOVO JOGO) --- */
+        /* MODAL DE BATALHA */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
             display: none; justify-content: center; align-items: center;
-            z-index: 100; opacity: 0; transition: opacity 0.3s;
+            z-index: 200; opacity: 0; transition: opacity 0.3s;
         }
         
         .battle-card {
-            background: #1e2328;
-            border: 2px solid var(--gold);
-            width: 90%; max-width: 500px;
-            padding: 30px;
-            border-radius: 12px;
-            text-align: center;
+            background: #1e2328; border: 2px solid var(--gold);
+            width: 90%; max-width: 500px; padding: 30px;
+            border-radius: 12px; text-align: center;
             box-shadow: 0 0 50px rgba(200, 170, 110, 0.2);
             transform: scale(0.8); transition: transform 0.3s;
-            position: relative;
         }
 
-        .battle-title { color: var(--gold); font-size: 1.5rem; margin-bottom: 20px; text-transform: uppercase; }
-        .battle-question { font-size: 1.2rem; margin-bottom: 30px; line-height: 1.5; }
-
         .option-btn {
-            display: block; width: 100%;
-            background: #2a2e35; border: 1px solid #444;
-            padding: 15px; margin: 10px 0;
-            color: #fff; text-align: left; font-size: 1rem;
+            display: block; width: 100%; background: #2a2e35; border: 1px solid #444;
+            padding: 15px; margin: 10px 0; color: #fff; text-align: left;
             border-radius: 6px; cursor: pointer; transition: 0.2s;
         }
         .option-btn:hover { background: #3a3e45; border-color: var(--gold); }
-
-        /* Estados de Resposta */
         .correct { background: #1a4a1a !important; border-color: var(--green) !important; color: var(--green) !important; }
-        .wrong { background: #4a1a1a !important; border-color: var(--red) !important; opacity: 0.6; }
+        .wrong { background: #4a1a1a !important; border-color: var(--red) !important; animation: shake 0.4s; }
 
-        .close-btn {
-            margin-top: 20px; background: transparent; border: 1px solid #555; color: #888; width: auto; padding: 5px 20px; font-size: 0.8rem;
-        }
-        .close-btn:hover { border-color: #fff; color: #fff; background: transparent; }
-
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+        
         .hidden { display: none !important; }
         .show-modal { display: flex; opacity: 1; }
         .show-card { transform: scale(1); }
@@ -163,150 +158,137 @@
 </head>
 <body>
 
+    <div id="game-hud" class="hud-bar">
+        <span>❤️ HP Aluno:</span>
+        <div class="hp-container">
+            <div id="hp-bar" class="hp-fill"></div>
+        </div>
+        <span id="hp-text">100/100</span>
+    </div>
+
     <header style="text-align: center;">
         <h1>🛡️ Class Forge 🛡️</h1>
-        <p style="color: #666; font-size: 0.9rem; margin-top: -10px;">PROTOTIPO FUNCIONAL V5</p>
+        <p style="color: #666; font-size: 0.9rem;">PROTOTIPO FINAL - MODO JOGO</p>
     </header>
 
     <div class="config-panel" id="setup-panel">
-        <label>1. Carregar Conteúdo (PDF ou Texto)</label>
+        <label>1. Carregar Conteúdo (PDF/Txt)</label>
         <input type="file" id="fileInput" accept=".pdf, .txt">
-        <textarea id="classContent" placeholder="O conteúdo da aula será extraído aqui..."></textarea>
+        <textarea id="classContent" placeholder="Conteúdo da aula..."></textarea>
         
-        <label>2. Chave de Inteligência (Gemini)</label>
+        <label>2. Chave API (Gemini)</label>
         <input type="password" id="apiKey" placeholder="Cole sua API Key NOVA aqui">
         
-        <button onclick="generateAdventure(true)">🔮 Criar Jornada (IA Real)</button>
-        <button class="btn-demo" onclick="generateAdventure(false)">🎲 Testar (Modo Demo)</button>
+        <button onclick="startGame(true)">🔮 Criar Jogo (IA)</button>
+        <button class="btn-demo" onclick="startGame(false)">🎲 Modo Demo</button>
     </div>
 
     <div id="loading" class="hidden" style="text-align: center;">
         <div class="loader"></div>
-        <h3 style="color: var(--gold)">Invocando Monstros...</h3>
-        <p>A IA está lendo o PDF e criando perguntas.</p>
+        <h3>Preparando o tabuleiro...</h3>
     </div>
 
     <div id="game-map-container">
-        <p style="text-align: center; color: var(--gold); margin-bottom: 20px; font-size: 0.9rem;">⬇ CLIQUE NOS CARDS PARA JOGAR ⬇</p>
         <div id="map-wrapper" class="map-wrapper"></div>
         <div style="text-align: center; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 50;">
-            <button onclick="location.reload()" style="width: auto; padding: 10px 40px; box-shadow: 0 0 20px #000;">Nova Aventura</button>
+            <button onclick="location.reload()" style="width: auto; padding: 10px 40px; box-shadow: 0 0 20px #000;">Reiniciar</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="battleModal" onclick="closeModal(event)">
         <div class="battle-card" id="battleCard" onclick="event.stopPropagation()">
             <div class="node-icon" id="modalIcon">⚔️</div>
-            <h2 class="battle-title" id="modalTitle">Título do Inimigo</h2>
-            <p class="battle-question" id="modalQuestion">A pergunta aparecerá aqui...</p>
-            
-            <div id="optionsContainer">
-                </div>
-
-            <div id="feedbackArea" style="margin-top: 15px; height: 30px; font-weight: bold;"></div>
-
-            <button class="close-btn" onclick="toggleModal(false)">Fugir da Batalha (Fechar)</button>
+            <h2 id="modalTitle" style="color:var(--gold)">Título</h2>
+            <p id="modalQuestion" style="font-size: 1.1rem; margin-bottom: 20px;">Pergunta...</p>
+            <div id="optionsContainer"></div>
+            <div id="feedbackArea" style="margin-top: 15px; font-weight: bold; min-height: 25px;"></div>
+            <button onclick="toggleModal(false)" style="margin-top: 20px; background: transparent; border: 1px solid #555; color: #888; width: auto;">Fechar</button>
         </div>
     </div>
 
 <script>
-    // --- 1. LEITURA DE PDF ---
-    let pdfRawText = "";
+    // --- ESTADO DO JOGO ---
+    let playerHP = 100;
+    let maxHP = 100;
+    let adventureData = [];
 
+    // --- 1. LEITURA PDF ---
     async function readPDF(file) {
         try {
             const arrayBuffer = await file.arrayBuffer();
             const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
             let fullText = "";
-            const maxPages = Math.min(pdf.numPages, 5); 
+            const maxPages = Math.min(pdf.numPages, 5);
             for (let i = 1; i <= maxPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
-                const pageText = textContent.items.map(item => item.str).join(" ");
-                fullText += pageText + " ";
+                fullText += textContent.items.map(item => item.str).join(" ") + " ";
             }
             return fullText;
-        } catch (e) {
-            console.error(e);
-            alert("Erro ao ler PDF. Tente outro arquivo.");
-            return "";
-        }
+        } catch (e) { return ""; }
     }
 
     document.getElementById('fileInput').addEventListener('change', async function(e) {
         const file = e.target.files[0];
-        if (!file) return;
-        const textArea = document.getElementById('classContent');
-        textArea.value = "⏳ Lendo arquivo...";
-        
-        if (file.type === "application/pdf") {
-            pdfRawText = await readPDF(file);
-            textArea.value = pdfRawText || "Erro: PDF vazio ou ilegível.";
-        } else {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                pdfRawText = e.target.result;
-                textArea.value = e.target.result;
-            };
-            reader.readAsText(file);
+        if (file && file.type === "application/pdf") {
+            document.getElementById('classContent').value = "⏳ Lendo PDF...";
+            document.getElementById('classContent').value = await readPDF(file);
         }
     });
 
-    // --- 2. IA E GERAÇÃO ---
-    let currentAdventureData = []; // Guarda os dados para usar no modal
-
-    async function generateAdventure(useRealAI) {
+    // --- 2. LÓGICA DO JOGO ---
+    async function startGame(useRealAI) {
         const content = document.getElementById('classContent').value;
         const apiKey = document.getElementById('apiKey').value;
-        
-        if (!content && useRealAI) { alert("O campo de texto está vazio!"); return; }
-        if (useRealAI && !apiKey) { alert("Cole a API Key!"); return; }
+
+        if (!content && useRealAI) return alert("Faltou o conteúdo!");
+        if (useRealAI && !apiKey) return alert("Faltou a Key!");
 
         document.getElementById('setup-panel').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
 
         if (useRealAI) {
             try {
-                const prompt = `
-                Atue como Game Master. Texto Base: "${content.substring(0, 3000)}"
-                Crie 4 fases (3 inimigos + 1 Boss). Retorne APENAS JSON puro:
+                const prompt = `Atue como Game Master. Texto Base: "${content.substring(0, 3000)}".
+                Crie 4 desafios (3 inimigos + 1 Boss). Retorne JSON puro:
                 [
-                    {"title": "Nome Criativo", "desc": "Contexto curto", "type": "enemy", "question": "Pergunta Quiz", "options": ["Opção A","Opção B","Opção C"], "correct": 1},
-                    {"title": "Nome do Boss", "desc": "Contexto curto", "type": "boss", "question": "Pergunta Difícil", "options": [], "correct": "Gabarito esperado"}
+                    {"title": "Nome Criativo", "desc": "Contexto", "type": "enemy", "question": "Pergunta Quiz", "options": ["A","B","C"], "correct": 1},
+                    {"title": "Nome do Boss", "desc": "Contexto", "type": "boss", "question": "Pergunta Final", "options": [], "correct": "Resposta"}
                 ]`;
 
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
 
-                if (!response.ok) throw new Error("Erro API");
                 const data = await response.json();
-                const textResponse = data.candidates[0].content.parts[0].text;
-                const jsonClean = textResponse.replace(/```json|```/g, '').trim();
-                currentAdventureData = JSON.parse(jsonClean);
+                const jsonStr = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+                adventureData = JSON.parse(jsonStr);
 
             } catch (error) {
-                alert("Erro na IA: " + error.message + "\nUsando Demo.");
-                currentAdventureData = getDemoData();
+                alert("Erro na IA. Usando Demo.");
+                adventureData = getDemoData();
             }
         } else {
-            await new Promise(r => setTimeout(r, 1500));
-            currentAdventureData = getDemoData();
+            await new Promise(r => setTimeout(r, 1000));
+            adventureData = getDemoData();
         }
 
-        renderMap(currentAdventureData);
-    }
+        // Adiciona estado de "completado" aos dados
+        adventureData.forEach(node => node.completed = false);
 
-    // --- 3. RENDERIZAÇÃO DO MAPA ---
-    function renderMap(data) {
-        const wrapper = document.getElementById('map-wrapper');
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('game-map-container').style.display = 'block';
+        document.getElementById('game-hud').style.display = 'flex';
+        renderMap();
+    }
+
+    // --- 3. RENDERIZAÇÃO INTELIGENTE ---
+    function renderMap() {
+        const wrapper = document.getElementById('map-wrapper');
         wrapper.innerHTML = '';
 
-        data.forEach((node, index) => {
+        adventureData.forEach((node, index) => {
             if (index > 0) {
                 const conn = document.createElement('div');
                 conn.className = 'connector';
@@ -314,41 +296,41 @@
             }
 
             const card = document.createElement('div');
-            card.className = `node-card ${node.type === 'boss' ? 'boss-card' : ''}`;
-            // Ao clicar, abre o Modal com o índice da questão
-            card.onclick = () => openBattle(index); 
+            // Adiciona classe se já foi completado
+            card.className = `node-card ${node.type === 'boss' ? 'boss-card' : ''} ${node.completed ? 'node-cleared' : ''}`;
+            
+            // Só permite clicar se NÃO foi completado
+            if (!node.completed) {
+                card.onclick = () => openBattle(index);
+            }
 
             let icon = node.type === 'boss' ? '👑' : '⚔️';
-
             card.innerHTML = `
                 <div class="node-icon">${icon}</div>
                 <h3 style="margin:0; color: var(--gold)">${node.title}</h3>
                 <p style="font-size:0.85rem; color:#aaa">${node.desc}</p>
-                <div style="font-size:0.7rem; color:#666; margin-top:10px;">(Clique para Jogar)</div>
             `;
             wrapper.appendChild(card);
         });
     }
 
-    // --- 4. SISTEMA DE BATALHA (MODAL) ---
-    function openBattle(index) {
-        const node = currentAdventureData[index];
-        const modal = document.getElementById('battleModal');
-        const container = document.getElementById('optionsContainer');
-        const feedback = document.getElementById('feedbackArea');
+    // --- 4. BATALHA E PROGRESSÃO ---
+    let currentNodeIndex = -1;
 
-        // Preenche dados
+    function openBattle(index) {
+        currentNodeIndex = index;
+        const node = adventureData[index];
+        const container = document.getElementById('optionsContainer');
+        
         document.getElementById('modalTitle').innerText = node.title;
         document.getElementById('modalQuestion').innerText = node.question;
-        document.getElementById('modalIcon').innerText = node.type === 'boss' ? '👑' : '⚔️';
-        feedback.innerText = "";
+        document.getElementById('feedbackArea').innerText = "";
         container.innerHTML = "";
 
-        // Se for Boss (Sem opções)
         if (node.type === 'boss' || !node.options || node.options.length === 0) {
-            container.innerHTML = `<div style="color: #aaa; font-style: italic;">Este é um desafio dissertativo.<br>Gabarito sugerido: "${node.correct}"</div>`;
+            container.innerHTML = `<div style="color:#aaa"><em>Pergunta aberta. O professor deve validar.</em><br><br><strong>Gabarito:</strong> ${node.correct}</div>
+            <button class="option-btn" onclick="resolveBattle(true)">✅ Validar Resposta (Vitória)</button>`;
         } else {
-            // Gera botões de opções
             node.options.forEach((opt, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
@@ -357,27 +339,61 @@
                 container.appendChild(btn);
             });
         }
-
         toggleModal(true);
     }
 
-    function checkAnswer(btn, selectedIndex, correctIndex) {
-        const feedback = document.getElementById('feedbackArea');
-        const allBtns = document.querySelectorAll('.option-btn');
+    function checkAnswer(btn, selected, correct) {
+        // Bloqueia cliques múltiplos
+        document.querySelectorAll('.option-btn').forEach(b => b.onclick = null);
 
-        // Trava cliques extras
-        allBtns.forEach(b => b.onclick = null);
-
-        if (selectedIndex === correctIndex) {
+        if (selected === correct) {
             btn.classList.add('correct');
-            feedback.innerText = "✨ ACERTO CULT! (Dano Crítico)";
-            feedback.style.color = "var(--green)";
+            document.getElementById('feedbackArea').innerText = "⚔️ CRITICAL HIT! Inimigo derrotado!";
+            document.getElementById('feedbackArea').style.color = "var(--green)";
+            
+            // Delay para fechar e atualizar mapa
+            setTimeout(() => resolveBattle(true), 1500);
         } else {
             btn.classList.add('wrong');
-            // Mostra qual era a certa
-            allBtns[correctIndex].classList.add('correct');
-            feedback.innerText = "❌ ERROU... (Você tomou dano)";
-            feedback.style.color = "var(--red)";
+            document.getElementById('feedbackArea').innerText = "🩸 ERROU! Você tomou 25 de dano!";
+            document.getElementById('feedbackArea').style.color = "var(--red)";
+            updateHP(-25);
+            
+            // Mostra a certa
+            document.querySelectorAll('.option-btn')[correct].classList.add('correct');
+            
+            // Fecha modal após delay (mas não marca como completo)
+            setTimeout(() => toggleModal(false), 2000);
+        }
+    }
+
+    function resolveBattle(victory) {
+        if (victory) {
+            adventureData[currentNodeIndex].completed = true;
+            renderMap(); // Redesenha o mapa para atualizar status
+            toggleModal(false);
+            
+            // Checar Vitória Total
+            if (adventureData.every(n => n.completed)) {
+                setTimeout(() => alert("🏆 PARABÉNS! Você completou a jornada!"), 500);
+            }
+        }
+    }
+
+    function updateHP(amount) {
+        playerHP += amount;
+        if (playerHP < 0) playerHP = 0;
+        
+        // Atualiza Barra Visual
+        const pct = (playerHP / maxHP) * 100;
+        document.getElementById('hp-bar').style.width = pct + "%";
+        document.getElementById('hp-text').innerText = playerHP + "/" + maxHP;
+
+        if (playerHP === 0) {
+            setTimeout(() => {
+                alert("💀 GAME OVER! A aula foi muito difícil...");
+                location.reload();
+            }, 500);
         }
     }
 
@@ -392,18 +408,14 @@
             setTimeout(() => modal.classList.remove('show-modal'), 300);
         }
     }
-
-    function closeModal(e) {
-        if (e.target.id === 'battleModal') toggleModal(false);
-    }
-
+    
+    function closeModal(e) { if (e.target.id === 'battleModal') toggleModal(false); }
     function getDemoData() {
         return [
-            { title: "Goblin do Teste", desc: "Aquecimento", type: "enemy", question: "Quanto é 2 + 2?", options: ["3", "4", "5"], correct: 1 },
-            { title: "Rei Demo", desc: "Chefe final", type: "boss", question: "Qual o sentido da vida?", options: [], correct: "42" }
+            { title: "Teste 1", desc: "Fácil", type: "enemy", question: "1+1?", options: ["11", "2", "0"], correct: 1 },
+            { title: "Boss", desc: "Hard", type: "boss", question: "Fim?", correct: "Sim" }
         ];
     }
 </script>
-
 </body>
 </html>
