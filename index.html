@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Forge - RPG Edition V7</title>
+    <title>Class Forge - RPG V8 (Smart Difficulty)</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
@@ -70,7 +70,10 @@
             width: 100%; overflow-x: auto; padding: 50px 20px;
             display: none; white-space: nowrap; 
             scrollbar-width: thin; scrollbar-color: var(--gold) var(--bg-color);
+            /* Scroll suave para botões, mas manipularemos via JS para o mouse */
+            scroll-behavior: smooth; 
         }
+        
         .map-wrapper { display: inline-flex; align-items: center; gap: 40px; padding-bottom: 20px; }
 
         .node-card {
@@ -92,7 +95,7 @@
         .boss-card .node-icon { border-color: var(--red); box-shadow: 0 0 15px var(--red); }
         .connector { display: inline-block; width: 40px; height: 2px; background: #555; margin: 0 -10px; }
 
-        /* MODAL DE BATALHA */
+        /* MODAL */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px);
@@ -110,7 +113,6 @@
 
         .battle-title { color: var(--gold); font-size: 1.5rem; margin-bottom: 10px; text-transform: uppercase; }
         
-        /* Botões de Escolha de Ataque */
         .combat-choice-btn {
             width: 48%; display: inline-block; margin: 1%;
             padding: 20px; background: #2a2e35; border: 1px solid #555;
@@ -133,7 +135,6 @@
         .show-modal { display: flex; opacity: 1; }
         .show-card { transform: scale(1); }
         
-        /* Loading */
         .loader { border: 5px solid #333; border-top: 5px solid var(--gold); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -149,32 +150,32 @@
     </div>
 
     <header style="text-align: center;">
-        <h1>🛡️ Class Forge 🛡️</h1>
-        <p style="color: #666; font-size: 0.9rem;">PROTOTIPO FINAL V7</p>
+        <h1>🛡️ Class Forge V8 🛡️</h1>
+        <p style="color: #666; font-size: 0.9rem;">DIFFICULTY CURVE + SCROLL UPDATE</p>
     </header>
 
     <div class="config-panel" id="setup-panel">
-        <label>1. Carregar Conteúdo (PDF/Txt)</label>
+        <label>1. Carregar Conteúdo</label>
         <input type="file" id="fileInput" accept=".pdf, .txt">
         <textarea id="classContent" placeholder="Conteúdo da aula..."></textarea>
         
         <label>2. Dificuldade da Jornada</label>
         <select id="difficulty">
-            <option value="3">Fácil (3 Desafios - Demo Rápida)</option>
-            <option value="5" selected>Médio (5 Desafios - Padrão)</option>
-            <option value="7">Difícil (7 Desafios - Jornada Completa)</option>
+            <option value="3">Iniciante (3 Fases - Fácil)</option>
+            <option value="5" selected>Aventureiro (5 Fases - Progressivo)</option>
+            <option value="7">Lendário (7 Fases - Difícil)</option>
         </select>
 
         <label>3. Chave API (Gemini)</label>
         <input type="password" id="apiKey" placeholder="Cole sua API Key NOVA aqui">
         
-        <button onclick="startGame(true)">🔮 Iniciar Jornada (IA)</button>
+        <button onclick="startGame(true)">🔮 Iniciar Jornada</button>
         <button class="btn-demo" onclick="startGame(false)">🎲 Modo Demo</button>
     </div>
 
     <div id="loading" class="hidden" style="text-align: center;">
         <div class="loader"></div>
-        <h3 style="color: var(--gold)">Mapeando o Conhecimento...</h3>
+        <h3 style="color: var(--gold)">Calculando Dificuldade Progressiva...</h3>
     </div>
 
     <div id="game-map-container">
@@ -190,14 +191,14 @@
             <h2 id="modalTitle" class="battle-title">Inimigo</h2>
             
             <div id="choiceScreen">
-                <p style="margin-bottom: 20px;">Escolha sua estratégia de combate:</p>
+                <p style="margin-bottom: 20px;">Escolha sua estratégia:</p>
                 <button class="combat-choice-btn" onclick="chooseCombatMode('quiz')">
                     ⚔️ <strong>Ataque Físico</strong><br>
-                    <span style="font-size:0.8rem; color:#aaa;">Responder Quiz (Múltipla Escolha)</span>
+                    <span style="font-size:0.8rem; color:#aaa;">Quiz Múltipla Escolha</span>
                 </button>
                 <button class="combat-choice-btn" onclick="chooseCombatMode('magic')">
                     ✨ <strong>Magia Arcana</strong><br>
-                    <span style="font-size:0.8rem; color:#aaa;">Julgamento (Verdadeiro ou Falso)</span>
+                    <span style="font-size:0.8rem; color:#aaa;">Verdadeiro ou Falso</span>
                 </button>
             </div>
 
@@ -207,18 +208,24 @@
                 <div id="feedbackArea" style="margin-top: 15px; font-weight: bold; min-height: 25px;"></div>
                 <button onclick="resetBattleUI()" style="margin-top: 20px; background: transparent; border: 1px solid #555; color: #888; width: auto; font-size: 0.8rem;">⬅ Voltar</button>
             </div>
-
         </div>
     </div>
 
 <script>
+    // --- SCROLL HORIZONTAL COM MOUSE WHEEL ---
+    const mapContainer = document.getElementById('game-map-container');
+    mapContainer.addEventListener('wheel', (evt) => {
+        evt.preventDefault();
+        mapContainer.scrollLeft += evt.deltaY; // Transforma scroll vertical em horizontal
+    });
+
     // --- ESTADO ---
     let playerHP = 100;
     let maxHP = 100;
     let adventureData = [];
     let currentEnemyIndex = -1;
 
-    // --- 1. LEITURA PDF ---
+    // --- LEITURA PDF ---
     async function readPDF(file) {
         try {
             const arrayBuffer = await file.arrayBuffer();
@@ -242,7 +249,7 @@
         }
     });
 
-    // --- 2. START GAME & IA ---
+    // --- START GAME & IA (COM DIFICULDADE PROGRESSIVA) ---
     async function startGame(useRealAI) {
         const content = document.getElementById('classContent').value;
         const apiKey = document.getElementById('apiKey').value;
@@ -254,34 +261,38 @@
         document.getElementById('setup-panel').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
 
-        // Calcula quantos inimigos e bosses
         const totalNodes = parseInt(difficulty);
         const enemiesCount = totalNodes - 1;
 
         if (useRealAI) {
             try {
-                // Prompt Engenheirado para 2 MODOS DE JOGO
-                const prompt = `Atue como Game Master de RPG Educacional.
+                // --- PROMPT DE DIFICULDADE PROGRESSIVA ---
+                const prompt = `Atue como Game Master Educacional.
                 Texto Base: "${content.substring(0, 3000)}"
                 
-                Gere uma jornada com ${enemiesCount} Inimigos e 1 Boss Final.
-                Para cada inimigo, crie DOIS modos de desafio: 
-                1. "quiz" (Múltipla Escolha)
-                2. "magic" (Verdadeiro ou Falso)
+                Gere uma jornada de RPG com ${enemiesCount} Inimigos e 1 Boss Final.
                 
-                Retorne APENAS JSON puro neste formato exato:
+                CRÍTICO: A dificuldade das perguntas deve AUMENTAR progressivamente:
+                - Os primeiros inimigos devem cobrar conceitos BÁSICOS e FÁCEIS (lembrança).
+                - Os inimigos do meio cobram aplicação e interpretação (médio).
+                - O Boss cobra análise complexa ou pensamento crítico (difícil).
+
+                Para cada inimigo, crie DOIS modos: "quiz" (Múltipla Escolha) e "magic" (Verdadeiro ou Falso).
+                
+                Retorne APENAS JSON puro:
                 [
                     {
-                        "title": "Nome Criativo", 
-                        "desc": "Contexto", 
+                        "title": "Nome do Inimigo (Nível 1 - Fácil)", 
+                        "desc": "Contexto do RPG", 
                         "type": "enemy",
-                        "quiz": { "question": "Pergunta", "options": ["A","B","C"], "correct": 1 },
-                        "magic": { "statement": "Afirmação sobre o texto", "is_true": true }
+                        "quiz": { "question": "Pergunta fácil", "options": ["A","B","C"], "correct": 1 },
+                        "magic": { "statement": "Afirmação fácil", "is_true": true }
                     },
+                    ... (aumente a dificuldade aqui) ...
                     {
-                        "title": "Nome do Boss",
+                        "title": "Nome do Boss (Nível Máximo)",
                         "type": "boss",
-                        "quiz": { "question": "Pergunta Difícil", "options": [], "correct": "Gabarito" } 
+                        "quiz": { "question": "Pergunta muito complexa", "options": [], "correct": "Gabarito" } 
                     }
                 ]`;
 
@@ -295,7 +306,6 @@
                 adventureData = JSON.parse(jsonStr);
 
             } catch (error) {
-                console.error(error);
                 alert("Erro na IA. Usando Demo.");
                 adventureData = getDemoData(totalNodes);
             }
@@ -311,7 +321,7 @@
         renderMap();
     }
 
-    // --- 3. RENDER MAPA ---
+    // --- RENDER ---
     function renderMap() {
         const wrapper = document.getElementById('map-wrapper');
         wrapper.innerHTML = '';
@@ -329,8 +339,12 @@
             if (!node.completed) card.onclick = () => openBattle(index);
 
             let icon = node.type === 'boss' ? '👑' : '⚔️';
+            // Adicionei indicador de nível visual
+            let levelText = index === adventureData.length - 1 ? "NÍVEL FINAL" : `NÍVEL ${index + 1}`;
+            
             card.innerHTML = `
                 <div class="node-icon">${icon}</div>
+                <div style="font-size:0.7rem; color:#666; letter-spacing:1px; margin-bottom:5px;">${levelText}</div>
                 <h3 style="margin:0; color: var(--gold)">${node.title}</h3>
                 <p style="font-size:0.85rem; color:#aaa">${node.desc}</p>
             `;
@@ -338,24 +352,20 @@
         });
     }
 
-    // --- 4. BATALHA (LÓGICA DE ESCOLHA) ---
+    // --- BATALHA ---
     function openBattle(index) {
         currentEnemyIndex = index;
         const node = adventureData[index];
-        
         document.getElementById('modalTitle').innerText = node.title;
         document.getElementById('modalIcon').innerText = node.type === 'boss' ? '👑' : '⚔️';
         
-        // Se for Boss, pula direto pro Quiz (Boss não tem modo fácil)
         if(node.type === 'boss') {
             document.getElementById('choiceScreen').classList.add('hidden');
             document.getElementById('questionScreen').classList.remove('hidden');
             renderCombatOptions('boss');
         } else {
-            // Se for Inimigo, mostra escolha
             resetBattleUI();
         }
-        
         toggleModal(true);
     }
 
@@ -377,12 +387,9 @@
         container.innerHTML = "";
 
         if (mode === 'quiz' || mode === 'boss') {
-            // MODO QUIZ
             const data = node.quiz;
             document.getElementById('modalQuestion').innerText = data.question;
-            
             if (!data.options || data.options.length === 0) {
-                 // Boss dissertativo
                  container.innerHTML = `<div style="color:#aaa"><em>Gabarito: ${data.correct}</em></div>
                  <button class="option-btn" onclick="resolveBattle(true)">✅ Validar Resposta</button>`;
             } else {
@@ -395,22 +402,18 @@
                 });
             }
         } else if (mode === 'magic') {
-            // MODO VERDADEIRO OU FALSO
             const data = node.magic;
             document.getElementById('modalQuestion').innerText = "Julgue a afirmação: \n\n" + '"' + data.statement + '"';
             
             const btnTrue = document.createElement('button');
-            btnTrue.className = 'option-btn';
-            btnTrue.innerText = "✨ Verdadeiro";
+            btnTrue.className = 'option-btn'; btnTrue.innerText = "✨ Verdadeiro";
             btnTrue.onclick = () => checkAnswer(btnTrue, data.is_true === true);
             
             const btnFalse = document.createElement('button');
-            btnFalse.className = 'option-btn';
-            btnFalse.innerText = "🌑 Falso";
+            btnFalse.className = 'option-btn'; btnFalse.innerText = "🌑 Falso";
             btnFalse.onclick = () => checkAnswer(btnFalse, data.is_true === false);
             
-            container.appendChild(btnTrue);
-            container.appendChild(btnFalse);
+            container.appendChild(btnTrue); container.appendChild(btnFalse);
         }
     }
 
@@ -424,7 +427,7 @@
             setTimeout(() => resolveBattle(true), 1500);
         } else {
             btn.classList.add('wrong');
-            document.getElementById('feedbackArea').innerText = "🩸 FALHA NA DEFESA! (-20 HP)";
+            document.getElementById('feedbackArea').innerText = "🩸 DANO SOFRIDO (-20 HP)";
             document.getElementById('feedbackArea').style.color = "var(--red)";
             updateHP(-20);
             setTimeout(() => toggleModal(false), 2000);
@@ -434,11 +437,8 @@
     function resolveBattle(victory) {
         if (victory) {
             adventureData[currentEnemyIndex].completed = true;
-            renderMap();
-            toggleModal(false);
-            if (adventureData.every(n => n.completed)) {
-                setTimeout(() => alert("🏆 VITÓRIA ÉPICA! Você dominou o conteúdo!"), 500);
-            }
+            renderMap(); toggleModal(false);
+            if (adventureData.every(n => n.completed)) setTimeout(() => alert("🏆 VITÓRIA ÉPICA!"), 500);
         }
     }
 
@@ -448,9 +448,7 @@
         const pct = (playerHP / maxHP) * 100;
         document.getElementById('hp-bar').style.width = pct + "%";
         document.getElementById('hp-text').innerText = playerHP + "/" + maxHP;
-        if (playerHP === 0) {
-            setTimeout(() => { alert("💀 GAME OVER"); location.reload(); }, 500);
-        }
+        if (playerHP === 0) { setTimeout(() => { alert("💀 GAME OVER"); location.reload(); }, 500); }
     }
 
     function toggleModal(show) {
@@ -459,19 +457,13 @@
         if (show) { modal.classList.add('show-modal'); setTimeout(() => card.classList.add('show-card'), 10); }
         else { card.classList.remove('show-card'); setTimeout(() => modal.classList.remove('show-modal'), 300); }
     }
-    
     function closeModal(e) { if (e.target.id === 'battleModal') toggleModal(false); }
-
     function getDemoData(count) {
         let arr = [];
         for(let i=0; i<count-1; i++) {
-            arr.push({ 
-                title: `Inimigo ${i+1}`, desc: "Demo", type: "enemy", 
-                quiz: { question: "1+1?", options: ["11", "2", "0"], correct: 1 },
-                magic: { statement: "A Terra é plana.", is_true: false }
-            });
+            arr.push({ title: `Nível ${i+1}`, desc: "Demo", type: "enemy", quiz: { question: "1+1?", options: ["2", "3"], correct: 0 }, magic: { statement: "Verdade?", is_true: true } });
         }
-        arr.push({ title: "Boss Demo", type: "boss", quiz: { question: "Fim?", correct: "Sim" } });
+        arr.push({ title: "Boss", type: "boss", quiz: { question: "Fim?", correct: "Sim" } });
         return arr;
     }
 </script>
