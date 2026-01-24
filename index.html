@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Forge V10 - Stable Edition</title>
+    <title>Class Forge V11 - Castle Edition</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script>
@@ -22,11 +22,22 @@
         
         body { 
             font-family: 'Segoe UI', sans-serif; 
-            background: var(--bg-color); 
             color: var(--text); 
             margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
+            
+            /* --- NOVO BACKGROUND: PAREDE DE CASTELO --- */
+            background-color: #0b0c15;
+            background-image: 
+                linear-gradient(335deg, #13141f 23px, transparent 23px),
+                linear-gradient(155deg, #13141f 23px, transparent 23px),
+                linear-gradient(335deg, #13141f 23px, transparent 23px),
+                linear-gradient(155deg, #13141f 23px, transparent 23px);
+            background-size: 58px 58px;
+            background-position: 0px 2px, 4px 35px, 29px 31px, 34px 6px;
+            /* Vinheta escura nas bordas pra dar clima */
+            box-shadow: inset 0 0 150px #000; 
         }
 
         /* HUD */
@@ -40,13 +51,19 @@
         .hp-container { width: 200px; height: 20px; background: #333; border-radius: 10px; overflow: hidden; }
         .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #ff4444, #ff8888); transition: width 0.5s; }
 
-        h1 { color: var(--gold); text-transform: uppercase; letter-spacing: 2px; border-bottom: 2px solid var(--gold); padding-bottom: 10px; }
+        h1 { 
+            color: var(--gold); text-transform: uppercase; letter-spacing: 2px; 
+            border-bottom: 2px solid var(--gold); padding-bottom: 10px; 
+            text-shadow: 0 0 10px rgba(200, 170, 110, 0.3);
+            background: rgba(0,0,0,0.6); /* Fundo para ler melhor no castelo */
+            padding: 10px 20px; border-radius: 4px;
+        }
 
         /* PAINEL CONFIG */
         .config-panel {
-            background: rgba(30, 35, 40, 0.95); border: 1px solid #444;
+            background: rgba(25, 30, 35, 0.95); border: 1px solid #444;
             padding: 30px; border-radius: 8px; width: 100%; max-width: 600px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.6); z-index: 10; transition: all 0.5s;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8); z-index: 10; transition: all 0.5s;
         }
 
         label { display: block; margin-top: 15px; color: var(--gold); font-size: 0.9rem; font-weight: bold; }
@@ -97,7 +114,7 @@
         .boss-card .node-icon { border-color: var(--red); box-shadow: 0 0 15px var(--red); }
         .connector { display: inline-block; width: 40px; height: 2px; background: #555; margin: 0 -10px; }
 
-        /* MODAL (FIXED SCROLL BUG) */
+        /* MODAL */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px);
@@ -107,23 +124,18 @@
         
         .battle-card {
             background: #1e2328; border: 2px solid var(--gold);
-            width: 90%; max-width: 600px; /* Largura maior */
-            max-height: 85vh; /* Altura máxima da tela */
-            display: flex; flex-direction: column; /* Flex para scroll funcionar */
+            width: 90%; max-width: 600px; max-height: 85vh;
+            display: flex; flex-direction: column; 
             padding: 30px;
             border-radius: 12px; text-align: center;
             box-shadow: 0 0 50px rgba(200, 170, 110, 0.3);
             transform: scale(0.9); transition: transform 0.3s;
         }
 
-        /* Área Scrollável dentro do Modal */
         .battle-content-scroll {
-            overflow-y: auto; /* Scroll vertical se necessário */
-            padding-right: 10px; /* Espaço pro scrollbar não comer texto */
-            margin-top: 10px;
+            overflow-y: auto; padding-right: 10px; margin-top: 10px;
         }
 
-        /* Scrollbar customizada dentro do modal */
         .battle-content-scroll::-webkit-scrollbar { width: 8px; }
         .battle-content-scroll::-webkit-scrollbar-track { background: #111; }
         .battle-content-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
@@ -167,13 +179,14 @@
     </div>
 
     <header style="text-align: center;">
-        <h1>🛡️ Class Forge V10 🛡️</h1>
-        <p style="color: #666; font-size: 0.9rem;">STABLE RELEASE</p>
+        <h1>🛡️ Class Forge V11 🛡️</h1>
+        <p style="color: #ccc; font-size: 0.9rem; text-shadow: 1px 1px 2px black;">CASTLE EDITION</p>
     </header>
 
     <div class="config-panel" id="setup-panel">
         <label>1. Escolha a Matéria</label>
         <select id="subject">
+            <option value="">-- Modo Livre (Apenas o conteúdo do PDF) --</option>
             <option value="História">📜 História</option>
             <option value="Matemática">📐 Matemática</option>
             <option value="Geografia">🌍 Geografia</option>
@@ -186,9 +199,9 @@
             <option value="Geral">🧠 Conhecimentos Gerais</option>
         </select>
 
-        <label>2. Carregar PDF (Opcional)</label>
+        <label>2. Carregar PDF (Obrigatório se "Modo Livre")</label>
         <input type="file" id="fileInput" accept=".pdf, .txt">
-        <textarea id="classContent" placeholder="Texto base (opcional)..."></textarea>
+        <textarea id="classContent" placeholder="Texto base..."></textarea>
         
         <label>3. Dificuldade</label>
         <select id="difficulty">
@@ -206,7 +219,7 @@
 
     <div id="loading" class="hidden" style="text-align: center;">
         <div class="loader"></div>
-        <h3 style="color: var(--gold)">Mapeando o Conhecimento...</h3>
+        <h3 style="color: var(--gold)">Construindo a Masmorra...</h3>
     </div>
 
     <div id="game-map-container">
@@ -245,21 +258,18 @@
     </div>
 
 <script>
-    // --- SCROLL AUTOMÁTICO ---
     const mapContainer = document.getElementById('game-map-container');
     mapContainer.addEventListener('wheel', (evt) => {
         evt.preventDefault();
         mapContainer.scrollLeft += evt.deltaY;
     });
 
-    // --- ESTADO GLOBAL ---
     let playerHP = 100;
     let maxHP = 100;
     let adventureData = [];
     let currentEnemyIndex = -1;
-    let isBusy = false; // TRAVA DE SEGURANÇA CONTRA CLIQUES MÚLTIPLOS
+    let isBusy = false; 
 
-    // --- LEITURA PDF ---
     async function readPDF(file) {
         try {
             const arrayBuffer = await file.arrayBuffer();
@@ -282,12 +292,17 @@
         }
     });
 
-    // --- START GAME ---
     async function startGame(useRealAI) {
         const content = document.getElementById('classContent').value;
         const apiKey = document.getElementById('apiKey').value;
         const difficulty = document.getElementById('difficulty').value;
         const subject = document.getElementById('subject').value;
+
+        // VALIDAÇÃO DE MODO LIVRE
+        if (subject === "" && (!content || content.length < 50 || content === "⏳ Lendo PDF...")) {
+            alert("⚠️ Atenção!\n\nNo 'Modo Livre', você PRECISA carregar um PDF ou colar um texto.\nA IA não tem como inventar questões sem uma matéria ou um texto base.");
+            return;
+        }
 
         if (useRealAI && !apiKey) return alert("Faltou a Key!");
 
@@ -300,10 +315,17 @@
         if (useRealAI) {
             try {
                 let contextInstruction = "";
-                if (content && content.length > 50 && content !== "⏳ Lendo PDF...") {
-                    contextInstruction = `Use o texto base abaixo, filtrando pelo tema ${subject}. Texto: "${content.substring(0, 3000)}"`;
+                
+                // LÓGICA DE CONTEXTO REFINADA
+                if (subject === "") {
+                    // MODO LIVRE
+                    contextInstruction = `O usuário NÃO escolheu uma matéria específica. Use EXCLUSIVAMENTE o texto base fornecido abaixo para criar as perguntas. Não invente nada fora deste texto.\nTexto Base: "${content.substring(0, 3000)}"`;
+                } else if (content && content.length > 50) {
+                    // MODO HÍBRIDO
+                    contextInstruction = `Use o texto base abaixo, mas filtre e foque no contexto da matéria de ${subject}.\nTexto Base: "${content.substring(0, 3000)}"`;
                 } else {
-                    contextInstruction = `Sem texto base. Use seu conhecimento sobre: ${subject}.`;
+                    // MODO SÓ MATÉRIA
+                    contextInstruction = `Não há texto base. Crie questões baseadas apenas no seu conhecimento sobre a matéria: ${subject}.`;
                 }
 
                 const prompt = `Atue como Game Master.
@@ -357,7 +379,6 @@
             const card = document.createElement('div');
             card.className = `node-card ${node.type === 'boss' ? 'boss-card' : ''} ${node.completed ? 'node-cleared' : ''}`;
             
-            // Só adiciona evento de click se não estiver ocupado e não completado
             card.onclick = () => {
                 if (!isBusy && !node.completed) openBattle(index);
             };
@@ -375,9 +396,8 @@
         });
     }
 
-    // --- LÓGICA DE COMBATE BLINDADA ---
     function openBattle(index) {
-        if (isBusy) return; // Bloqueio extra
+        if (isBusy) return; 
         currentEnemyIndex = index;
         const node = adventureData[index];
         document.getElementById('modalTitle').innerText = node.title;
@@ -409,7 +429,6 @@
         const container = document.getElementById('optionsContainer');
         container.innerHTML = "";
         
-        // Limpa feedback anterior
         document.getElementById('feedbackArea').innerText = "";
         document.getElementById('feedbackArea').className = "";
 
@@ -444,7 +463,6 @@
     }
 
     function checkAnswer(btn, isCorrect, mode) {
-        // Bloqueia todos os botões imediatamente
         const allBtns = document.querySelectorAll('.option-btn');
         allBtns.forEach(b => b.onclick = null);
 
@@ -453,7 +471,6 @@
             document.getElementById('feedbackArea').innerText = "⚔️ VENCEU!";
             document.getElementById('feedbackArea').style.color = "var(--green)";
             
-            // Ativa TRAVA GLOBAL para impedir clique em outra carta
             isBusy = true;
             document.body.classList.add('busy');
 
@@ -461,26 +478,12 @@
         } else {
             btn.classList.add('wrong');
             
-            if (mode === 'magic') {
-                document.getElementById('feedbackArea').innerText = "🩸 FALHA NA MAGIA! (-15 HP e Tente de Novo)";
-            } else {
-                document.getElementById('feedbackArea').innerText = "🩸 ERROU! (-15 HP)";
-            }
+            let msg = mode === 'magic' ? "🩸 FALHA NA MAGIA! (-15 HP)" : "🩸 ERROU! (-15 HP)";
+            document.getElementById('feedbackArea').innerText = msg;
             document.getElementById('feedbackArea').style.color = "var(--red)";
             
             updateHP(-15);
-            
-            // Delay antes de fechar para o jogador ver o erro
-            setTimeout(() => {
-                // Se foi Magic e errou, NÃO completa a fase. Fecha modal e obriga a jogar de novo.
-                if (mode === 'magic') {
-                    toggleModal(false); 
-                } else {
-                    // No quiz, se errar, a gente pode deixar "passar" ou não. 
-                    // Pela lógica atual de RPG hard, errou = perdeu a vez, tenta de novo.
-                    toggleModal(false);
-                }
-            }, 2000);
+            setTimeout(() => toggleModal(false), 2000);
         }
     }
 
@@ -490,11 +493,10 @@
             renderMap(); 
             toggleModal(false);
             
-            // Libera a trava global
             isBusy = false;
             document.body.classList.remove('busy');
 
-            if (adventureData.every(n => n.completed)) setTimeout(() => alert("🏆 PARABÉNS! JORNADA CONCLUÍDA!"), 500);
+            if (adventureData.every(n => n.completed)) setTimeout(() => alert("🏆 CASTELO CONQUISTADO!"), 500);
         }
     }
 
@@ -502,7 +504,7 @@
         playerHP += amount; if (playerHP < 0) playerHP = 0;
         document.getElementById('hp-bar').style.width = (playerHP/maxHP*100) + "%";
         document.getElementById('hp-text').innerText = playerHP + "/" + maxHP;
-        if (playerHP === 0) { setTimeout(() => { alert("💀 GAME OVER"); location.reload(); }, 500); }
+        if (playerHP === 0) { setTimeout(() => { alert("💀 VOCÊ CAIU NA MASMORRA..."); location.reload(); }, 500); }
     }
 
     function toggleModal(show) {
@@ -512,9 +514,7 @@
         else { card.classList.remove('show-card'); setTimeout(() => modal.classList.remove('show-modal'), 300); }
     }
     
-    function closeBattleModal() {
-        toggleModal(false);
-    }
+    function closeBattleModal() { toggleModal(false); }
 
     function getDemoData(c) { 
         return Array(c).fill(0).map((_,i) => ({ 
