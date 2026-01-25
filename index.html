@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Class Forge V17 - Redemption</title>
+    <title>Class Forge V18 - Bulletproof</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
@@ -83,6 +83,21 @@
         }
         .btn-sec { background: #222; border-color: #444; color: #aaa; font-size: 0.9rem; margin-top: 10px; }
 
+        /* DASHBOARD */
+        .dashboard-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0a0a0a; z-index: 3000; display: none;
+            flex-direction: column; padding: 20px; overflow-y: auto;
+        }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: #151515; padding: 20px; border: 1px solid #333; text-align: center; }
+        .stat-num { font-size: 2rem; color: var(--gold); font-weight: bold; }
+        .student-list { width: 100%; border-collapse: collapse; color: #ccc; }
+        .student-list th { text-align: left; color: #888; padding: 10px; border-bottom: 1px solid #333; }
+        .student-list td { padding: 15px 10px; border-bottom: 1px solid #222; }
+        .grade-good { color: var(--green); } .grade-bad { color: var(--red); }
+
         /* MAPA */
         #game-area {
             width: 100%; height: 100%; display: none;
@@ -125,14 +140,12 @@
         .battle-header { padding: 15px; background: rgba(212, 175, 55, 0.1); border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         .battle-body { padding: 20px; overflow-y: auto; flex: 1; }
         
-        /* LORE BOX NO MODAL */
         .lore-box {
             background: #111; border-left: 3px solid var(--gold);
             padding: 15px; margin-bottom: 20px; font-style: italic; color: #ccc;
             font-size: 0.95rem; line-height: 1.4;
         }
 
-        /* COMBAT OPTIONS */
         .combat-selector { display: flex; flex-direction: column; gap: 10px; }
         .combat-option {
             background: #1a1a1a; border: 1px solid #333; display: flex; align-items: center; gap: 20px;
@@ -143,7 +156,6 @@
         .combat-info h3 { margin: 0; color: var(--gold); font-size: 1rem; }
         .combat-info p { margin: 5px 0 0 0; color: #888; font-size: 0.8rem; }
 
-        /* QUIZ */
         .question-text { font-size: 1.2rem; line-height: 1.5; margin-bottom: 20px; text-align: left; font-weight: bold; color: #fff; }
         .quiz-btn {
             width: 100%; padding: 18px; margin-bottom: 10px; background: #1a1a1a; 
@@ -152,12 +164,10 @@
         }
         .quiz-btn:hover { background: #252525; border-color: #666; }
 
-        /* PUZZLE */
         .word-bank { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
         .word-slot { background: #222; border: 1px solid #555; padding: 10px 14px; cursor: pointer; border-radius: 4px; user-select: none; }
         .answer-area { background: #000; border-bottom: 2px solid var(--gold); min-height: 50px; display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; justify-content: center; }
 
-        /* FEEDBACK AREA */
         #feedback-area {
             margin-top: 20px; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem; border-radius: 4px; min-height: 20px;
         }
@@ -185,7 +195,7 @@
 
     <div id="config-screen" class="config-overlay">
         <h1 style="color: var(--gold); text-align: center; margin-bottom: 5px; font-size: 2rem;">CLASS FORGE</h1>
-        <p style="color: #666; font-size: 0.7rem; letter-spacing: 3px; margin-bottom: 20px;">V17 REDEMPTION</p>
+        <p style="color: #666; font-size: 0.7rem; letter-spacing: 3px; margin-bottom: 20px;">V18 BULLETPROOF</p>
         
         <div class="config-box">
             <label style="color:var(--gold); font-weight:bold; display:block; margin-bottom:5px;">📜 Matéria / Tema</label>
@@ -218,6 +228,7 @@
             <input type="password" id="apiKey" placeholder="Cole sua chave aqui">
 
             <button class="btn-main" onclick="initGame(true)">JOGAR AGORA</button>
+            <button class="btn-main btn-sec" onclick="showDashboard()">📊 PAINEL DO PROFESSOR</button>
             <button class="btn-main btn-sec" onclick="initGame(false)">TESTAR (SEM API)</button>
         </div>
         
@@ -225,6 +236,27 @@
             <div class="loader">⚙️</div>
             <p style="color: var(--gold);">Gerando Masmorra Narrativa...</p>
         </div>
+    </div>
+
+    <div id="dashboard" class="dashboard-overlay">
+        <div class="dash-header">
+            <h2 style="margin:0; color:var(--gold)">Relatório da Turma: 3º B</h2>
+            <button onclick="hideDashboard()" style="background:none; border:1px solid #444; color:#fff; padding:5px 15px; border-radius:4px;">Fechar</button>
+        </div>
+        <div class="stat-grid">
+            <div class="stat-card"><div class="stat-num">85%</div><div class="stat-label">Engajamento</div></div>
+            <div class="stat-card"><div class="stat-num grade-good">9.2</div><div class="stat-label">Média da Turma</div></div>
+        </div>
+        <h3 style="color:#666; margin-bottom:15px; border-left:3px solid var(--gold); padding-left:10px;">Desempenho Individual</h3>
+        <table class="student-list">
+            <thead><tr><th>Aluno</th><th>Status</th><th>Nota</th></tr></thead>
+            <tbody>
+                <tr><td>Ana Silva</td><td style="color:var(--green)">Concluído</td><td class="grade-good">10.0</td></tr>
+                <tr><td>Bruno Souza</td><td style="color:var(--green)">Concluído</td><td class="grade-good">8.5</td></tr>
+                <tr><td>Carla Diaz</td><td style="color:orange">Em Andamento</td><td>-</td></tr>
+                <tr><td>Daniel Rocha</td><td style="color:var(--red)">Falhou</td><td class="grade-bad">4.0</td></tr>
+            </tbody>
+        </table>
     </div>
 
     <div id="game-area">
@@ -259,6 +291,9 @@
         }
     });
 
+    function showDashboard() { document.getElementById('dashboard').style.display = 'flex'; }
+    function hideDashboard() { document.getElementById('dashboard').style.display = 'none'; }
+
     async function readPDF(file) {
         try {
             const arrayBuffer = await file.arrayBuffer();
@@ -281,6 +316,14 @@
         }
     });
 
+    // --- FUNÇÃO AUXILIAR: LIMPEZA CIRÚRGICA DE JSON ---
+    function cleanJSON(text) {
+        const firstBracket = text.indexOf('[');
+        const lastBracket = text.lastIndexOf(']');
+        if (firstBracket === -1 || lastBracket === -1) throw new Error("A IA não retornou uma lista válida.");
+        return text.substring(firstBracket, lastBracket + 1);
+    }
+
     async function initGame(useRealAI) {
         try {
             const content = document.getElementById('classContent').value;
@@ -299,7 +342,6 @@
             const enemiesCount = difficulty - 1;
 
             if (useRealAI) {
-                // PROMPT REFORÇADO PARA NARRATIVA E PRECISÃO
                 let context = subject === "" ? `Baseie-se ESTRITAMENTE neste texto: "${content.substring(0, 3000)}"` : `Matéria: ${subject}. Texto apoio: "${content.substring(0, 2000)}"`;
                 
                 const prompt = `
@@ -312,13 +354,14 @@
                 1. GERE UMA 'DESC' (LORE) ENVOLVENTE PARA CADA CARTA.
                 2. RIGOR FACTUAL: Se for matemática, FAÇA A CONTA 3 VEZES. Se for história, USE FATOS REAIS. NÃO ALUCINE.
                 3. GERE 3 MODOS DE COMBATE PARA CADA INIMIGO.
+                4. RETORNE APENAS O ARRAY JSON.
 
-                Retorne APENAS JSON válido neste formato:
+                Formato do JSON:
                 [
                     {
                         "title": "Nome do Inimigo", 
                         "type": "enemy",
-                        "desc": "Uma descrição narrativa curta mas imersiva que conecta o inimigo ao tema da aula (Ex: O Guardião dos Primos bloqueia a ponte...)",
+                        "desc": "Lore...",
                         "quiz": { "question": "Pergunta Factual", "options": ["A","B","C"], "correct": 1 },
                         "magic": { "statement": "Afirmação Factual", "is_true": true },
                         "stealth": { "phrase": "Conceito Chave Curto" }
@@ -331,8 +374,12 @@
                 });
 
                 const data = await response.json();
-                const jsonText = data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim();
+                
+                // LIMPEZA DO JSON
+                let rawText = data.candidates[0].content.parts[0].text;
+                let jsonText = cleanJSON(rawText);
                 adventureData = JSON.parse(jsonText);
+
             } else {
                 await new Promise(r => setTimeout(r, 1500));
                 adventureData = getDemoData(difficulty);
@@ -344,6 +391,7 @@
             renderMap();
 
         } catch (error) {
+            console.error(error);
             alert("Erro: " + error.message + "\nCarregando demo.");
             adventureData = getDemoData(3);
             document.getElementById('config-screen').classList.add('hidden');
@@ -364,7 +412,6 @@
             card.onclick = function() { if (!isLocked && !node.completed && !isBusy) openBattleSelector(index); };
             let icon = node.type === 'boss' ? '🐲' : '💀'; if (node.completed) icon = '🛡️';
             
-            // INSERIDO DESCRIÇÃO NA CARTA
             card.innerHTML = `
                 <div class="card-icon">${icon}</div>
                 <div class="card-title">${node.title}</div>
@@ -380,7 +427,6 @@
         document.getElementById('enemy-title').innerText = node.title.toUpperCase();
         document.getElementById('battle-modal').style.display = 'flex';
         
-        // MOSTRA A LORE NO TOPO DO MODAL
         const loreHTML = `<div class="lore-box">"${node.desc || 'O inimigo te encara...'}"</div>`;
 
         if (node.type === 'boss') { 
@@ -402,13 +448,12 @@
         const node = adventureData[currentEnemyIndex];
         const body = document.getElementById('battle-body');
         
-        // Preserva a Lore se ela não estiver lá
         if (!body.innerHTML.includes('lore-box')) {
             const loreHTML = `<div class="lore-box">"${node.desc}"</div>`;
             body.innerHTML = loreHTML + body.innerHTML;
         }
 
-        let html = `<div id="feedback-area"></div>`; // ÁREA DE FEEDBACK RESTAURADA
+        let html = `<div id="feedback-area"></div>`;
 
         if (mode === 'quiz') {
             html += `<p class="question-text">${node.quiz.question}</p>`;
@@ -429,7 +474,6 @@
             }, 50);
         }
         
-        // Substitui apenas o conteúdo abaixo da Lore
         const existingLore = body.querySelector('.lore-box');
         body.innerHTML = "";
         if(existingLore) body.appendChild(existingLore);
@@ -448,7 +492,6 @@
 
     function moveWord(el) { const bank = document.getElementById('puzzle-bank'); const answer = document.getElementById('puzzle-answer'); (el.parentElement === bank ? answer : bank).appendChild(el); document.getElementById('check-puzzle-btn').style.opacity = '1'; }
     
-    // --- CHECKERS COM FEEDBACK DE TEXTO ---
     function showFeedback(msg, isGood) {
         const area = document.getElementById('feedback-area');
         area.innerText = msg;
@@ -460,34 +503,22 @@
     function checkPuzzle(t) { 
         const u = Array.from(document.getElementById('puzzle-answer').children).map(s => s.innerText).join(' '); 
         if (u.replace(/\s+/g,'').toLowerCase() === t.replace(/\s+/g,'').toLowerCase()) {
-            showFeedback("SISTEMA HACKEADO!", true);
-            winEffect(document.getElementById('check-puzzle-btn'));
+            showFeedback("SISTEMA HACKEADO!", true); winEffect(document.getElementById('check-puzzle-btn'));
         } else {
-            showFeedback("SENHA INCORRETA! (-15 HP)", false);
-            loseEffect(document.getElementById('check-puzzle-btn'));
+            showFeedback("SENHA INCORRETA! (-15 HP)", false); loseEffect(document.getElementById('check-puzzle-btn'));
         }
     }
 
     function checkQuiz(s, c) { 
         const btns = document.querySelectorAll('.quiz-btn');
-        if (s === c) {
-            showFeedback("RESPOSTA CORRETA!", true);
-            winEffect(btns[s]);
-        } else {
-            showFeedback("RESPOSTA ERRADA! (-15 HP)", false);
-            loseEffect(btns[s]);
-        }
+        if (s === c) { showFeedback("RESPOSTA CORRETA!", true); winEffect(btns[s]); } 
+        else { showFeedback("RESPOSTA ERRADA! (-15 HP)", false); loseEffect(btns[s]); }
     }
 
     function checkMagic(u, c) { 
         const t = u ? document.querySelectorAll('.btn-main')[0] : document.querySelectorAll('.btn-main')[1]; 
-        if (u === c) {
-            showFeedback("JULGAMENTO PERFEITO!", true);
-            winEffect(t);
-        } else {
-            showFeedback("FALHA NA MAGIA! (-15 HP)", false);
-            loseEffect(t);
-        }
+        if (u === c) { showFeedback("JULGAMENTO PERFEITO!", true); winEffect(t); } 
+        else { showFeedback("FALHA NA MAGIA! (-15 HP)", false); loseEffect(t); }
     }
 
     function winEffect(el) { if(!el) return; el.classList.add('correct'); isBusy = true; setTimeout(() => { resolveBattle(true); isBusy = false; }, 1000); }
