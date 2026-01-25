@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Forge V12 - Dungeon Master</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Class Forge V13 - Mobile Edition</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
@@ -20,30 +20,31 @@
             --gold-glow: #ffd700;
             --fire-core: #ffeba7;
             --fire-mid: #ff7b00;
-            --fire-outer: #ff2a00;
             --text-main: #e0e0e0;
             --green: #2ecc71;
             --red: #e74c3c;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0; padding: 0;
             background-color: var(--bg-dark);
-            /* Parede de Castelo Procedural */
             background-image: 
                 linear-gradient(335deg, #0f0f0f 23px, transparent 23px),
                 linear-gradient(155deg, #0f0f0f 23px, transparent 23px);
             background-size: 58px 58px;
             color: var(--text-main);
-            height: 100vh;
-            overflow: hidden; /* O scroll é interno */
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Altura real mobile */
+            overflow: hidden; 
             display: flex; flex-direction: column; align-items: center;
         }
 
         h1, h2, h3 { font-family: 'Cinzel', serif; letter-spacing: 2px; }
 
-        /* --- TOCHAS ANIMADAS (CSS PURO) --- */
+        /* --- TOCHAS (Somente Desktop) --- */
         .torch-container {
             position: fixed; top: 20%; width: 100px; height: 300px; z-index: 1; pointer-events: none;
         }
@@ -54,178 +55,177 @@
             width: 30px; height: 50px;
             background: linear-gradient(0deg, var(--fire-core), var(--fire-mid), transparent);
             border-radius: 50% 50% 20% 20%;
-            position: absolute; left: 35px; top: 0;
-            filter: blur(5px);
+            position: absolute; left: 35px; top: 0; filter: blur(5px);
             animation: flicker 0.5s infinite alternate;
             box-shadow: 0 0 40px 10px rgba(255, 100, 0, 0.4);
         }
-        
         .torch-handle {
             width: 10px; height: 100px; background: #444;
             position: absolute; left: 45px; top: 40px;
             background: linear-gradient(90deg, #222, #555, #222);
             transform: perspective(10px) rotateX(5deg);
         }
-
         @keyframes flicker {
             0% { transform: scale(1) skewX(-2deg); opacity: 0.9; }
-            50% { transform: scale(1.1) skewX(2deg); opacity: 1; }
             100% { transform: scale(0.95) skewX(-1deg); opacity: 0.8; }
         }
 
         /* --- HUD --- */
         .hud-bar {
-            position: fixed; top: 20px; right: 20px; z-index: 1000;
-            background: rgba(0,0,0,0.8); padding: 10px 25px;
+            position: fixed; top: 15px; right: 15px; z-index: 1000;
+            background: rgba(0,0,0,0.9); padding: 8px 15px;
             border: 2px solid var(--gold); border-radius: 4px;
-            box-shadow: 0 0 15px var(--gold);
-            display: none; align-items: center; gap: 15px;
+            display: none; align-items: center; gap: 10px;
+            transform-origin: top right;
         }
-        .hp-track { width: 200px; height: 15px; background: #222; border: 1px solid #555; transform: skewX(-10deg); }
+        .hp-track { width: 150px; height: 12px; background: #222; border: 1px solid #555; transform: skewX(-10deg); }
         .hp-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #c0392b, #e74c3c); transition: width 0.4s ease-out; }
 
-        /* --- PAINEL DE CONFIGURAÇÃO --- */
+        /* --- CONFIG SCREEN --- */
         .config-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 2000;
+            background: rgba(0,0,0,0.96); z-index: 2000;
             display: flex; justify-content: center; align-items: center; flex-direction: column;
-            transition: opacity 0.5s;
+            padding: 20px; overflow-y: auto; /* Scroll se a tela for pequena */
         }
         
         .config-box {
-            width: 500px; padding: 40px; background: #111;
-            border: 2px solid var(--gold);
-            box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
+            width: 100%; max-width: 500px; padding: 25px; background: #111;
+            border: 2px solid var(--gold); box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
             position: relative;
         }
         
-        .config-box::before { /* Borda decorativa */
-            content: ""; position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
-            border: 1px solid rgba(212, 175, 55, 0.5); pointer-events: none;
-        }
-
-        input, select, textarea {
+        input, select {
             width: 100%; background: #000; border: 1px solid #444; color: var(--gold);
-            padding: 12px; margin: 8px 0 20px 0; font-family: 'Roboto', sans-serif;
-            box-sizing: border-box;
+            padding: 12px; margin: 8px 0 15px 0; font-family: 'Roboto', sans-serif;
+            font-size: 16px; /* Evita zoom no iOS */
         }
         
         .btn-main {
             width: 100%; padding: 15px; font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.1rem;
             background: linear-gradient(180deg, #b8860b, #8b6508);
             color: #000; border: 1px solid #ffd700; cursor: pointer;
-            transition: 0.2s; text-transform: uppercase;
+            text-transform: uppercase; margin-top: 10px;
+            touch-action: manipulation;
         }
-        .btn-main:hover { filter: brightness(1.2); box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
 
         /* --- MAPA --- */
         #game-area {
             width: 100%; height: 100%; display: none;
             overflow-x: auto; overflow-y: hidden;
-            white-space: nowrap; padding: 0 50px;
-            align-items: center;
+            -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
+            white-space: nowrap; padding: 0 20px;
         }
-        /* Centralizar verticalmente o conteúdo do mapa flex */
-        .map-flex { display: flex; align-items: center; height: 100%; gap: 60px; padding-left: 40vw; padding-right: 10vw; }
+        .map-flex { display: flex; align-items: center; height: 100%; gap: 40px; padding-left: 50vw; padding-right: 50vw; }
 
         .card {
-            width: 240px; height: 320px;
-            background: var(--card-bg);
-            border: 2px solid #444;
+            width: 220px; height: 300px; flex-shrink: 0;
+            background: var(--card-bg); border: 2px solid #444;
             display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative; cursor: pointer;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.2s;
         }
-        
-        .card:hover { transform: scale(1.05) translateY(-10px); border-color: var(--gold); box-shadow: 0 0 30px rgba(212, 175, 55, 0.3); }
-        
+        .card:active { transform: scale(0.95); }
         .card.locked { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
         .card.cleared { border-color: var(--green); filter: grayscale(1) brightness(0.5); }
         .card.cleared::after { content: "DOMINADO"; position: absolute; color: var(--green); font-family: 'Cinzel'; font-weight: bold; font-size: 1.5rem; transform: rotate(-15deg); text-shadow: 0 0 10px #000; }
         
-        .card-icon { font-size: 4rem; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
-        .card-type { font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 2px; }
-        .card-title { font-size: 1.2rem; color: var(--gold); text-align: center; margin: 10px; white-space: normal; }
+        .card-icon { font-size: 3.5rem; margin-bottom: 20px; }
+        .card-title { font-size: 1.1rem; color: var(--gold); text-align: center; margin: 10px; white-space: normal; }
+        .connector { width: 40px; height: 4px; background: #333; position: relative; flex-shrink: 0; }
 
-        .connector { width: 60px; height: 4px; background: #333; position: relative; }
-        .connector::after { content: ""; position: absolute; width: 100%; height: 1px; background: #555; top: 1px; }
-
-        /* --- MODAL DE BATALHA --- */
+        /* --- BATTLE MODAL (RESPONSIVO) --- */
         .battle-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.92); z-index: 1500;
+            background: rgba(0,0,0,0.95); z-index: 1500;
             display: none; justify-content: center; align-items: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(5px); padding: 10px;
         }
 
         .battle-window {
-            width: 800px; max-width: 90%; height: 80vh;
+            width: 100%; max-width: 700px; height: 90vh;
             background: #0f0f0f; border: 1px solid var(--gold);
             display: flex; flex-direction: column;
-            box-shadow: 0 0 100px rgba(0,0,0,0.8);
-            animation: modalOpen 0.4s ease-out;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9);
+            animation: modalOpen 0.3s ease-out;
         }
-
-        @keyframes modalOpen { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes modalOpen { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
         .battle-header {
-            padding: 20px; background: rgba(212, 175, 55, 0.1);
+            padding: 15px; background: rgba(212, 175, 55, 0.1);
             border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;
         }
         
-        .battle-body {
-            padding: 30px; overflow-y: auto; flex: 1;
-        }
+        .battle-body { padding: 20px; overflow-y: auto; flex: 1; }
 
-        /* TIPOS DE ESCOLHA DE COMBATE */
-        .combat-selector { display: flex; gap: 20px; height: 100%; }
+        /* SELETORES DE COMBATE (MOBILE FRIENDLY) */
+        .combat-selector { 
+            display: flex; gap: 15px; height: 100%; 
+            flex-direction: row; /* Desktop Default */
+        }
         .combat-option {
             flex: 1; background: #1a1a1a; border: 1px solid #333;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer; transition: 0.3s; padding: 20px; text-align: center;
+            cursor: pointer; padding: 15px; text-align: center; min-height: 150px;
         }
-        .combat-option:hover { background: #222; border-color: var(--gold); transform: translateY(-5px); }
-        .combat-icon { font-size: 3rem; margin-bottom: 15px; }
-        .combat-title { color: var(--gold); font-family: 'Cinzel'; font-size: 1.2rem; margin-bottom: 10px; }
-        .combat-desc { font-size: 0.9rem; color: #888; }
-
-        /* PUZZLE DE FURTIVIDADE */
-        .puzzle-area { margin-top: 20px; text-align: center; }
-        .word-bank { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; min-height: 50px; }
+        .combat-option:active { background: #222; border-color: var(--gold); }
+        
+        /* PUZZLE & QUIZ */
+        .word-bank { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
         .word-slot {
-            background: #222; border: 1px solid #555; padding: 10px 20px;
-            cursor: pointer; border-radius: 4px; user-select: none; transition: 0.2s;
+            background: #222; border: 1px solid #555; padding: 12px 16px;
+            cursor: pointer; border-radius: 4px; user-select: none; font-size: 0.9rem;
         }
-        .word-slot:hover { background: #333; border-color: var(--gold); }
         
         .answer-area { 
             background: #000; border-bottom: 2px solid var(--gold); 
-            min-height: 60px; display: flex; flex-wrap: wrap; gap: 10px; 
+            min-height: 60px; display: flex; flex-wrap: wrap; gap: 8px; 
             padding: 15px; justify-content: center; margin-bottom: 20px;
         }
 
-        /* QUIZ */
-        .question-text { font-size: 1.3rem; line-height: 1.6; margin-bottom: 30px; }
+        .question-text { font-size: 1.1rem; line-height: 1.5; margin-bottom: 25px; }
         .quiz-btn {
-            width: 100%; padding: 15px 20px; margin-bottom: 10px;
+            width: 100%; padding: 18px; margin-bottom: 12px;
             background: #1a1a1a; border: 1px solid #333; color: #ddd;
-            text-align: left; cursor: pointer; transition: 0.2s; font-size: 1rem;
+            text-align: left; cursor: pointer; font-size: 1rem;
         }
-        .quiz-btn:hover { border-color: var(--gold); background: #222; }
-        
-        /* FEEDBACK STATES */
+
         .correct { background: rgba(46, 204, 113, 0.2) !important; border-color: var(--green) !important; color: var(--green) !important; }
         .wrong { background: rgba(231, 76, 60, 0.2) !important; border-color: var(--red) !important; animation: shake 0.4s; }
-        
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
 
         .hidden { display: none !important; }
-        
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        /* --- MEDIA QUERIES (O SEGREDO DO MOBILE) --- */
+        @media (max-width: 768px) {
+            /* Esconde Tochas no celular pra limpar a tela */
+            .torch-container { display: none; }
+            
+            /* Ajusta HUD */
+            .hud-bar { top: 10px; right: 10px; padding: 5px 10px; transform: scale(0.9); }
+            
+            /* Ajusta Config Screen */
+            .config-box { width: 100%; border-left: none; border-right: none; padding: 15px; }
+            h1 { font-size: 2rem; }
+            
+            /* Ajusta Cards */
+            .card { width: 180px; height: 260px; }
+            .map-flex { padding-left: 20px; padding-right: 20px; gap: 20px; }
+            
+            /* Ajusta Batalha */
+            .battle-window { height: 100%; border: none; }
+            
+            /* Importante: Transforma as opções de combate em LISTA VERTICAL */
+            .combat-selector { flex-direction: column; height: auto; }
+            .combat-option { flex-direction: row; min-height: 80px; text-align: left; gap: 20px; justify-content: flex-start; }
+            .combat-icon { font-size: 2rem; margin-bottom: 0; }
+            .combat-title { margin-bottom: 0; font-size: 1rem; }
+            .combat-desc { font-size: 0.8rem; display: none; /* Esconde descrição pra caber melhor */ }
+            
+            /* Botões maiores para dedo */
+            .quiz-btn, .word-slot { padding: 15px; font-size: 1rem; }
+        }
     </style>
 </head>
 <body>
@@ -240,13 +240,13 @@
     </div>
 
     <div id="config-screen" class="config-overlay">
-        <h1 style="color: var(--gold); font-size: 3rem; margin-bottom: 10px; text-shadow: 0 0 20px var(--gold);">CLASS FORGE</h1>
-        <p style="color: #888; letter-spacing: 5px; margin-bottom: 40px;">V12 DUNGEON MASTER EDITION</p>
+        <h1 style="color: var(--gold); text-align: center; margin-bottom: 5px;">CLASS FORGE</h1>
+        <p style="color: #666; font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 30px;">V13 MOBILE EDITION</p>
         
         <div class="config-box">
             <label>📜 Matéria / Tema</label>
             <select id="subject">
-                <option value="">-- MODO LIVRE (Baseado apenas no PDF) --</option>
+                <option value="">-- MODO LIVRE (Baseado no PDF) --</option>
                 <option value="História">História</option>
                 <option value="Matemática">Matemática</option>
                 <option value="Geografia">Geografia</option>
@@ -258,31 +258,27 @@
                 <option value="Tecnologia">Tecnologia</option>
             </select>
 
-            <label>📂 Arquivo de Apoio (Opcional)</label>
+            <label>📂 PDF (Opcional)</label>
             <input type="file" id="fileInput" accept=".pdf, .txt">
             <input type="text" id="classContent" style="display:none;" value="">
 
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1">
-                    <label>⚔️ Dificuldade</label>
-                    <select id="difficulty">
-                        <option value="3">Iniciante (3 Salas)</option>
-                        <option value="5" selected>Aventureiro (5 Salas)</option>
-                        <option value="7">Lendário (7 Salas)</option>
-                    </select>
-                </div>
-            </div>
+            <label>⚔️ Dificuldade</label>
+            <select id="difficulty">
+                <option value="3">Rápido (3 Salas)</option>
+                <option value="5" selected>Normal (5 Salas)</option>
+                <option value="7">Longo (7 Salas)</option>
+            </select>
 
-            <label>🔑 Chave do Mestre (API Key)</label>
-            <input type="password" id="apiKey" placeholder="Cole sua Gemini API Key">
+            <label>🔑 Chave API (Gemini)</label>
+            <input type="password" id="apiKey" placeholder="Cole sua API Key aqui">
 
-            <button class="btn-main" onclick="startGame(true)">ADENTRAR MASMORRA</button>
-            <button class="btn-main" style="background: #333; border-color: #555; font-size: 0.9rem;" onclick="startGame(false)">Modo Demonstração</button>
+            <button class="btn-main" onclick="startGame(true)">JOGAR AGORA</button>
+            <button class="btn-main" style="background: #222; border-color: #444; font-size: 0.8rem; margin-top: 15px;" onclick="startGame(false)">TESTAR SEM API</button>
         </div>
         
         <div id="loading" class="hidden" style="margin-top: 20px; text-align: center;">
             <div style="font-size: 2rem; animation: spin 2s infinite linear;">⚙️</div>
-            <p style="color: var(--gold); margin-top: 10px;">A IA está construindo o labirinto...</p>
+            <p style="color: var(--gold); margin-top: 10px;">Criando Masmorra...</p>
         </div>
     </div>
 
@@ -294,8 +290,8 @@
     <div id="battle-modal" class="battle-overlay">
         <div class="battle-window">
             <div class="battle-header">
-                <h2 id="enemy-title" style="margin:0; color: var(--gold)">Nome do Inimigo</h2>
-                <button onclick="closeModal()" style="background:none; border:none; color:#666; cursor:pointer; font-size:1.5rem;">✕</button>
+                <h2 id="enemy-title" style="margin:0; color: var(--gold); font-size: 1.2rem;">Inimigo</h2>
+                <button onclick="closeModal()" style="background:none; border:none; color:#666; font-size:1.5rem; padding: 10px;">✕</button>
             </div>
             
             <div class="battle-body" id="battle-body">
@@ -304,16 +300,17 @@
     </div>
 
 <script>
-    // --- AUDIO & SCROLL ---
+    // --- SCROLL MOUSE (Desktop) ---
     const gameArea = document.getElementById('game-area');
     gameArea.addEventListener('wheel', (evt) => {
-        evt.preventDefault();
-        gameArea.scrollLeft += evt.deltaY;
+        // Apenas no desktop (sem touch)
+        if (window.matchMedia("(min-width: 769px)").matches) {
+            evt.preventDefault();
+            gameArea.scrollLeft += evt.deltaY;
+        }
     });
 
-    // --- GAME STATE ---
     let playerHP = 100;
-    const maxHP = 100;
     let adventureData = [];
     let currentEnemyIndex = -1;
     let isBusy = false;
@@ -340,7 +337,7 @@
         }
     });
 
-    // --- START GAME ---
+    // --- GAME ENGINE ---
     async function startGame(useRealAI) {
         const content = document.getElementById('classContent').value;
         const apiKey = document.getElementById('apiKey').value;
@@ -348,10 +345,10 @@
         const subject = document.getElementById('subject').value;
 
         if (subject === "" && (!content || content.length < 20)) {
-            alert("⚠️ MODO LIVRE: É necessário carregar um PDF para jogar sem matéria definida.");
+            alert("No MODO LIVRE, você precisa enviar um PDF!");
             return;
         }
-        if (useRealAI && !apiKey) return alert("Falta a API Key!");
+        if (useRealAI && !apiKey) return alert("Cole a API Key!");
 
         document.querySelector('.config-box').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
@@ -360,31 +357,26 @@
 
         if (useRealAI) {
             try {
-                // --- PROMPT DE ENGENHARIA AVANÇADA V12 ---
                 let context = subject === "" 
                     ? `Baseie-se APENAS neste texto: "${content.substring(0, 3000)}"` 
-                    : `Matéria: ${subject}. Texto apoio (se houver): "${content.substring(0, 2000)}"`;
+                    : `Matéria: ${subject}. Apoio: "${content.substring(0, 2000)}"`;
 
-                const prompt = `
-                Atue como Mestre de RPG Educacional.
-                ${context}
-                
-                Gere uma campanha com ${enemiesCount} Inimigos e 1 Boss.
-                
-                PARA CADA INIMIGO, GERE 3 MODOS DE COMBATE:
-                1. "quiz" (Múltipla Escolha - 3 opções)
-                2. "magic" (Verdadeiro ou Falso)
-                3. "stealth" (Enigma de Sintaxe): Crie uma frase curta (máx 8 palavras) que resuma um conceito chave, para o aluno reordenar.
+                const prompt = `Atue como Mestre de RPG Educacional. ${context}.
+                Gere ${enemiesCount} Inimigos e 1 Boss.
+                Para cada, crie 3 modos:
+                1. "quiz" (3 opções)
+                2. "magic" (Verdadeiro/Falso)
+                3. "stealth" (Frase curta max 6 palavras para reordenar)
 
-                Formato JSON Estrito:
+                JSON Estrito:
                 [
                     {
-                        "title": "Nome Fantasioso", "type": "enemy",
+                        "title": "Nome Curto", "type": "enemy",
                         "quiz": { "question": "...", "options": ["A","B","C"], "correct": 1 },
                         "magic": { "statement": "...", "is_true": true },
-                        "stealth": { "phrase": "A soma dos catetos é a hipotenusa" }
+                        "stealth": { "phrase": "Soma dos catetos" }
                     },
-                    { "title": "Boss", "type": "boss", "quiz": { "question": "Difícil", "options": [], "correct": "Gabarito" } }
+                    { "title": "Boss", "type": "boss", "quiz": { "question": "Difícil", "options": [], "correct": "Gab" } }
                 ]`;
 
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
@@ -397,248 +389,51 @@
                 adventureData = JSON.parse(jsonText);
 
             } catch (e) {
-                console.error(e);
-                alert("Erro na IA. Carregando Demo.");
+                alert("Erro IA. Usando Demo.");
                 adventureData = getDemoData(difficulty);
             }
         } else {
-            await new Promise(r => setTimeout(r, 1500));
+            await new Promise(r => setTimeout(r, 1000));
             adventureData = getDemoData(difficulty);
         }
 
-        // Setup UI
         document.getElementById('config-screen').classList.add('hidden');
         document.getElementById('game-area').style.display = 'block';
         document.getElementById('game-hud').style.display = 'flex';
         renderMap();
     }
 
-    // --- RENDERIZAR MAPA (CARD SYSTEM) ---
     function renderMap() {
         const container = document.getElementById('map-container');
         container.innerHTML = "";
-        
         adventureData.forEach((node, index) => {
-            if (index > 0) {
-                const conn = document.createElement('div');
-                conn.className = 'connector';
-                container.appendChild(conn);
-            }
+            if (index > 0) container.appendChild(document.createElement('div')).className = 'connector';
 
             const card = document.createElement('div');
-            // Lógica de Bloqueio: Só libera se o anterior foi feito (ou é o primeiro)
             const isLocked = index > 0 && !adventureData[index-1].completed;
-            
             card.className = `card ${node.type} ${node.completed ? 'cleared' : ''} ${isLocked ? 'locked' : ''}`;
             
-            if (!isLocked && !node.completed) {
-                card.onclick = () => openBattleSelector(index);
-            }
+            if (!isLocked && !node.completed) card.onclick = () => openBattleSelector(index);
 
             let icon = node.type === 'boss' ? '🐲' : '💀';
             if (node.completed) icon = '🛡️';
 
-            card.innerHTML = `
-                <div class="card-icon">${icon}</div>
-                <div class="card-type">${node.type === 'boss' ? 'BOSS FINAL' : 'NÍVEL '+(index+1)}</div>
-                <div class="card-title">${node.title}</div>
-            `;
+            card.innerHTML = `<div class="card-icon">${icon}</div><div class="card-title">${node.title}</div>`;
             container.appendChild(card);
         });
     }
 
-    // --- SELETOR DE COMBATE (3 MODOS) ---
     function openBattleSelector(index) {
         if(isBusy) return;
         currentEnemyIndex = index;
         const node = adventureData[index];
-        const body = document.getElementById('battle-body');
         document.getElementById('enemy-title').innerText = node.title;
         document.getElementById('battle-modal').style.display = 'flex';
+        
+        if (node.type === 'boss') { renderCombat('quiz', true); return; }
 
-        if (node.type === 'boss') {
-            renderCombat('quiz', true); // Boss é sempre Quiz direto
-            return;
-        }
-
-        body.innerHTML = `
-            <h3 style="text-align:center; color:#888; margin-bottom:30px;">ESCOLHA SUA ESTRATÉGIA</h3>
+        document.getElementById('battle-body').innerHTML = `
             <div class="combat-selector">
                 <div class="combat-option" onclick="renderCombat('quiz')">
                     <div class="combat-icon">⚔️</div>
-                    <div class="combat-title">ATAQUE FÍSICO</div>
-                    <div class="combat-desc">Quiz clássico. Teste seus reflexos mentais.</div>
-                </div>
-                <div class="combat-option" onclick="renderCombat('magic')">
-                    <div class="combat-icon">✨</div>
-                    <div class="combat-title">MAGIA ARCANA</div>
-                    <div class="combat-desc">Julgamento Rápido. Verdadeiro ou Falso?</div>
-                </div>
-                <div class="combat-option" onclick="renderCombat('stealth')">
-                    <div class="combat-icon">🧩</div>
-                    <div class="combat-title">FURTIVIDADE</div>
-                    <div class="combat-desc">Decifrar Enigma. Reordene as palavras do conceito.</div>
-                </div>
-            </div>
-        `;
-    }
-
-    // --- RENDERIZAR O COMBATE ESCOLHIDO ---
-    function renderCombat(mode, isBoss = false) {
-        const node = adventureData[currentEnemyIndex];
-        const body = document.getElementById('battle-body');
-        let html = "";
-
-        if (mode === 'quiz') {
-            html = `<p class="question-text">${node.quiz.question}</p>`;
-            if (isBoss && (!node.quiz.options || node.quiz.options.length === 0)) {
-                html += `<div style="text-align:center; color:#gold"><em>Gabarito: ${node.quiz.correct}</em></div>
-                         <button class="btn-main" onclick="resolveBattle(true)" style="margin-top:20px">Confirmar Vitória</button>`;
-            } else {
-                node.quiz.options.forEach((opt, i) => {
-                    html += `<button class="quiz-btn" onclick="checkQuiz(${i}, ${node.quiz.correct})">${opt}</button>`;
-                });
-            }
-        } 
-        else if (mode === 'magic') {
-            html = `<p class="question-text" style="text-align:center; font-style:italic">"${node.magic.statement}"</p>
-                    <div style="display:flex; gap:20px; justify-content:center; margin-top:40px;">
-                        <button class="btn-main" onclick="checkMagic(true, ${node.magic.is_true})">VERDADEIRO</button>
-                        <button class="btn-main" style="background:linear-gradient(180deg, #555, #222); border-color:#888" onclick="checkMagic(false, ${node.magic.is_true})">FALSO</button>
-                    </div>`;
-        }
-        else if (mode === 'stealth') {
-            // Lógica do Puzzle
-            const phrase = node.stealth.phrase;
-            const words = phrase.split(' ');
-            const shuffled = [...words].sort(() => Math.random() - 0.5);
-            
-            html = `<p style="text-align:center; color:#888;">Clique nas palavras na ordem correta para reconstruir o conceito:</p>
-                    <div class="answer-area" id="puzzle-answer"></div>
-                    <div class="word-bank" id="puzzle-bank"></div>
-                    <button class="btn-main" style="margin-top:20px; opacity:0.5" id="check-puzzle-btn" onclick="checkPuzzle('${phrase}')">HACKEAR SISTEMA</button>`;
-            
-            // Renderiza após inserir HTML
-            setTimeout(() => {
-                const bank = document.getElementById('puzzle-bank');
-                shuffled.forEach(word => {
-                    const span = document.createElement('span');
-                    span.className = 'word-slot';
-                    span.innerText = word;
-                    span.onclick = () => moveWord(span);
-                    bank.appendChild(span);
-                });
-            }, 10);
-        }
-
-        // Botão de voltar
-        if (!isBoss) {
-            html += `<button onclick="openBattleSelector(${currentEnemyIndex})" style="margin-top:30px; background:none; border:none; color:#666; cursor:pointer">← Voltar</button>`;
-        }
-        
-        body.innerHTML = html;
-    }
-
-    // --- LÓGICA DO PUZZLE (FURTIVIDADE) ---
-    function moveWord(el) {
-        const bank = document.getElementById('puzzle-bank');
-        const answer = document.getElementById('puzzle-answer');
-        
-        if (el.parentElement === bank) {
-            answer.appendChild(el);
-        } else {
-            bank.appendChild(el);
-        }
-        document.getElementById('check-puzzle-btn').style.opacity = '1';
-    }
-
-    function checkPuzzle(targetPhrase) {
-        const answerDiv = document.getElementById('puzzle-answer');
-        const userPhrase = Array.from(answerDiv.children).map(s => s.innerText).join(' ');
-        
-        // Normaliza para evitar erros de espaços
-        if (userPhrase.trim().toLowerCase() === targetPhrase.trim().toLowerCase()) {
-            winEffect(document.getElementById('check-puzzle-btn'));
-        } else {
-            loseEffect(document.getElementById('check-puzzle-btn'));
-        }
-    }
-
-    // --- VERIFICAÇÕES DE COMBATE ---
-    function checkQuiz(selected, correct) {
-        const btns = document.querySelectorAll('.quiz-btn');
-        if (selected === correct) winEffect(btns[selected]);
-        else loseEffect(btns[selected]);
-    }
-
-    function checkMagic(userChoice, correctChoice) {
-        const btns = document.querySelectorAll('.btn-main'); // Pega os botões V/F
-        // Botão 0 é Verdadeiro, 1 é Falso
-        const clickedBtn = userChoice ? btns[0] : btns[1];
-        
-        if (userChoice === correctChoice) winEffect(clickedBtn);
-        else loseEffect(clickedBtn);
-    }
-
-    // --- EFEITOS DE VITÓRIA / DERROTA ---
-    function winEffect(element) {
-        element.classList.add('correct');
-        isBusy = true;
-        setTimeout(() => {
-            resolveBattle(true);
-            isBusy = false;
-        }, 1000);
-    }
-
-    function loseEffect(element) {
-        element.classList.add('wrong');
-        updateHP(-20);
-        setTimeout(() => {
-            element.classList.remove('wrong'); // Tira o vermelho pra tentar de novo
-        }, 1000);
-    }
-
-    // --- RESOLUÇÃO ---
-    function resolveBattle(victory) {
-        if (victory) {
-            adventureData[currentEnemyIndex].completed = true;
-            document.getElementById('battle-modal').style.display = 'none';
-            renderMap();
-            
-            // Check Final Win
-            if (adventureData.every(n => n.completed)) {
-                setTimeout(() => alert("🏆 MASMORRA CONQUISTADA! VOCÊ É UM MESTRE!"), 500);
-            }
-        }
-    }
-
-    function updateHP(amount) {
-        playerHP += amount;
-        if (playerHP < 0) playerHP = 0;
-        document.getElementById('hp-bar').style.width = playerHP + '%';
-        document.getElementById('hp-text').innerText = playerHP + '/100';
-        
-        if (playerHP === 0) {
-            alert("💀 VOCÊ SUCUMBIU ÀS TREVAS... (Game Over)");
-            location.reload();
-        }
-    }
-
-    function closeModal() {
-        document.getElementById('battle-modal').style.display = 'none';
-    }
-
-    // --- DEMO DATA ---
-    function getDemoData(diff) {
-        return Array(diff).fill(0).map((_, i) => ({
-            title: i === diff-1 ? "Rei Esqueleto" : `Guardião ${i+1}`,
-            type: i === diff-1 ? "boss" : "enemy",
-            completed: false,
-            quiz: { question: "Quanto é 2 + 2?", options: ["3","4","5"], correct: 1 },
-            magic: { statement: "A Terra é plana.", is_true: false },
-            stealth: { phrase: "Conhecimento é poder" }
-        }));
-    }
-</script>
-</body>
-</html>
+                    <div><div class="combat-title">COMBATE</div><div class="combat-des
