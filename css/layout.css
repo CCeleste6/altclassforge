@@ -1,0 +1,246 @@
+#confetti-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+}
+
+.torch-container {
+  position: fixed;
+  top: 20%;
+  width: 100px;
+  height: 300px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.torch-left { left: 20px; }
+.torch-right { right: 20px; }
+
+.torch-flame {
+  width: 30px;
+  height: 50px;
+  background: linear-gradient(0deg, var(--fire-core), var(--fire-mid), transparent);
+  border-radius: 50% 50% 20% 20%;
+  position: absolute;
+  left: 35px;
+  top: 0;
+  filter: blur(5px);
+  animation: flicker 0.5s infinite alternate;
+  box-shadow: 0 0 40px 10px rgba(255, 100, 0, 0.4);
+}
+
+.torch-handle {
+  width: 10px;
+  height: 100px;
+  background: linear-gradient(90deg, #222, #555, #222);
+  position: absolute;
+  left: 45px;
+  top: 40px;
+}
+
+@keyframes flicker {
+  0% { transform: scale(1) skewX(-2deg); opacity: 0.9; }
+  100% { transform: scale(0.95) skewX(-1deg); opacity: 0.8; }
+}
+
+.screen-overlay,
+.dashboard-overlay,
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.96);
+  backdrop-filter: blur(6px);
+}
+
+.screen-visible,
+.dashboard-overlay.visible,
+.modal-overlay.visible {
+  display: flex;
+}
+
+.screen-overlay {
+  justify-content: flex-start;
+  align-items: center;
+  flex-direction: column;
+  padding: 5vh 15px 20px;
+}
+
+.config-box,
+.loading-box,
+.dashboard-card {
+  width: 100%;
+  max-width: 620px;
+  background: rgba(17, 17, 17, 0.96);
+  border: 2px solid var(--gold);
+  box-shadow: var(--shadow-heavy), 0 0 30px rgba(212, 175, 55, 0.12);
+  border-radius: 12px;
+  padding: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.loading-box {
+  text-align: center;
+  color: var(--gold);
+}
+
+.loader {
+  font-size: 3rem;
+  animation: spin 2s linear infinite;
+}
+
+.footer-note {
+  margin-top: auto;
+  color: #444;
+  font-size: 0.8rem;
+  padding: 30px 0 8px;
+}
+
+.hud-bar {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  left: 10px;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 8px 12px;
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+}
+
+.hud-bar.visible {
+  display: flex;
+}
+
+.stats-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.hp-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hp-track {
+  width: 128px;
+  height: 12px;
+  background: #222;
+  border: 1px solid #555;
+  transform: skewX(-10deg);
+  overflow: hidden;
+}
+
+.hp-fill {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #c0392b, #e74c3c);
+  transition: width 0.3s ease-out;
+}
+
+.game-area {
+  width: 100%;
+  height: 100%;
+  display: none;
+  position: relative;
+  z-index: 10;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  padding: 0 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.game-area.visible {
+  display: block;
+}
+
+.map-flex {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 24px;
+  padding-left: 45vw;
+  padding-right: 45vw;
+}
+
+.dashboard-overlay {
+  z-index: 3000;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 5vh 15px 40px;
+}
+
+.modal-overlay {
+  z-index: 2500;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+}
+
+.battle-window {
+  width: 100%;
+  max-width: 720px;
+  max-height: 92vh;
+  background: #0f0f0f;
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-heavy), 0 0 40px rgba(212, 175, 55, 0.12);
+  overflow: hidden;
+}
+
+.battle-header {
+  padding: 16px;
+  background: rgba(212, 175, 55, 0.1);
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.battle-header h2,
+.dash-header h2 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 1.2rem;
+}
+
+.battle-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.dash-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .torch-container { display: none; }
+  .brand-title { font-size: 2.5rem; }
+  .hud-bar { align-items: flex-start; }
+  .hp-track { width: 95px; }
+  .battle-window { max-height: 96vh; }
+  .map-flex { padding-left: 20px; padding-right: 20px; }
+}
