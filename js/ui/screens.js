@@ -41,9 +41,15 @@
     syncHUD();
   }
 
-  function showLoading(isLoading) {
+  function setLoadingMessage(message) {
+    const el = qs('loading-message');
+    if (el) el.textContent = message || 'Forjando dungeon educacional...';
+  }
+
+  function showLoading(isLoading, message) {
     toggleClass('config-box', 'hidden', isLoading);
     toggleClass('loading', 'hidden', !isLoading);
+    if (isLoading) setLoadingMessage(message || 'Forjando dungeon educacional...');
   }
 
   function showDashboard() {
@@ -88,6 +94,7 @@
       profile.innerHTML = `
         <div><strong>Classe:</strong> ${Utils.escapeHTML(className)} · <strong>Origem:</strong> ${Utils.escapeHTML(run.meta.source || 'demo')}</div>
         <div><strong>Matéria:</strong> ${Utils.escapeHTML(run.meta.subject || 'Modo livre')}</div>
+        ${run.meta.source === 'gemini' ? `<div><strong>Modelo IA:</strong> ${Utils.escapeHTML(run.meta.usedModel || run.meta.modelId || 'Gemini')}</div>` : ''}
         <div class="profile-chip-row">${questionTypeStatsHTML(run)}</div>
       `;
     }
@@ -125,6 +132,7 @@
     showConfig: showConfig,
     showGame: showGame,
     showLoading: showLoading,
+    setLoadingMessage: setLoadingMessage,
     showDashboard: showDashboard,
     hideDashboard: hideDashboard,
     syncHUD: syncHUD,
