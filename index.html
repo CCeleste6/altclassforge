@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Class Forge - Roguelike Beta 3.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+</head>
+<body>
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="torch-container torch-left" aria-hidden="true"><div class="torch-flame"></div><div class="torch-handle"></div></div>
+  <div class="torch-container torch-right" aria-hidden="true"><div class="torch-flame"></div><div class="torch-handle"></div></div>
+
+  <header id="game-hud" class="hud-bar" aria-label="HUD da run">
+    <div class="stats-group">
+      <div class="hp-container" title="Vida do aluno na run">
+        <span class="hud-label">HP</span>
+        <div class="hp-track"><div id="hp-bar" class="hp-fill"></div></div>
+        <span id="hp-text" class="hud-value">100/100</span>
+      </div>
+      <div class="hud-pill" title="Moedas de troca desta run">🪙 <span id="coin-count">0</span></div>
+      <div class="hud-pill" title="Dicas disponíveis">🎫 <span id="voucher-count">0</span></div>
+      <div class="hud-pill" title="Escudos contra erro">🛡️ <span id="shield-count">0</span></div>
+    </div>
+    <button class="menu-btn" data-action="dashboard">⚙️ Menu</button>
+  </header>
+
+  <main id="config-screen" class="screen-overlay screen-visible">
+    <h1 class="brand-title">CLASS FORGE</h1>
+    <div class="version-badge">Roguelike Beta v3.0</div>
+
+    <section class="config-box" id="config-box">
+      <div class="section-title">📜 Matéria</div>
+      <select id="subject">
+        <option value="">-- MODO LIVRE (usa PDF/texto abaixo) --</option>
+        <option value="História">História</option>
+        <option value="Matemática">Matemática</option>
+        <option value="Geografia">Geografia</option>
+        <option value="Ciências">Ciências</option>
+        <option value="Física">Física</option>
+        <option value="Química">Química</option>
+        <option value="Literatura">Literatura</option>
+        <option value="Inglês">Inglês</option>
+        <option value="Tecnologia">Tecnologia</option>
+        <option value="Conhecimentos Gerais">Conhecimentos Gerais</option>
+      </select>
+
+      <div class="section-title">🎭 Tema do RPG</div>
+      <select id="rpg-theme">
+        <option value="Fantasia Medieval Obscura (Dark Fantasy)">Fantasia Medieval</option>
+        <option value="Cyberpunk Distópico Neon">Cyberpunk</option>
+        <option value="Ficção Científica Espacial">Espaço Sideral</option>
+        <option value="Apocalipse Zumbi Sobrevivência">Apocalipse Zumbi</option>
+        <option value="Academia Arcana de Magos e Monstros">Academia Arcana</option>
+      </select>
+
+      <div class="section-title">📂 Texto ou PDF</div>
+      <input type="file" id="file-input" accept=".pdf,.txt" />
+      <textarea id="class-content" placeholder="Cole o conteúdo da aula aqui, ou envie um PDF/TXT."></textarea>
+
+      <div class="section-title">🧭 Tamanho da Run</div>
+      <select id="difficulty">
+        <option value="6">Curta (6 questões + eventos)</option>
+        <option value="9" selected>Normal (9 questões + eventos)</option>
+        <option value="12">Longa (12 questões + eventos)</option>
+      </select>
+
+      <div class="section-title">🔑 API Key (Gemini)</div>
+      <input type="password" id="api-key" placeholder="Cole sua chave aqui para gerar com IA" />
+
+      <button class="btn-main" data-action="start-ai">Forjar Dungeon com IA</button>
+      <button class="btn-main btn-sec" data-action="start-demo">Modo Demo Roguelike</button>
+      <button class="btn-main btn-sec" data-action="dashboard">📊 Relatórios</button>
+    </section>
+
+    <section id="loading" class="loading-box hidden">
+      <div class="loader">⚙️</div>
+      <p>Forjando dungeon educacional...</p>
+    </section>
+
+    <footer class="footer-note">Project Class Forge © 2026</footer>
+  </main>
+
+  <section id="dashboard" class="dashboard-overlay" aria-label="Painel de controle">
+    <div class="dashboard-card">
+      <div class="dash-header">
+        <h2>Painel de Controle</h2>
+        <button class="menu-btn" data-action="close-dashboard">VOLTAR</button>
+      </div>
+
+      <button class="btn-main" data-action="export-pdf">🖨️ Baixar prova e gabarito</button>
+      <button class="btn-main btn-sec" data-action="restart">🔄 Reiniciar run</button>
+
+      <h3 class="subheading">Estatísticas da Run</h3>
+      <div class="stat-grid">
+        <div class="stat-card"><div id="dash-precision" class="stat-num">0%</div><div class="stat-label">Precisão</div></div>
+        <div class="stat-card"><div id="dash-xp" class="stat-num grade-good">0</div><div class="stat-label">XP</div></div>
+        <div class="stat-card"><div id="dash-wins" class="stat-num">0</div><div class="stat-label">Casas vencidas</div></div>
+        <div class="stat-card"><div id="dash-coins" class="stat-num">0</div><div class="stat-label">Moedas da run</div></div>
+      </div>
+
+      <h3 class="subheading">Power-ups Ativos</h3>
+      <div id="powerup-list" class="powerup-list empty-state">Nenhum power-up ainda.</div>
+    </div>
+  </section>
+
+  <section id="game-area" class="game-area" aria-label="Mapa da dungeon">
+    <div id="map-container" class="map-flex"></div>
+  </section>
+
+  <section id="battle-modal" class="modal-overlay" aria-label="Janela de desafio">
+    <div class="battle-window">
+      <div class="battle-header">
+        <h2 id="modal-title">DESAFIO</h2>
+        <button class="icon-btn" data-action="close-modal" aria-label="Fechar">✕</button>
+      </div>
+      <div id="modal-body" class="battle-body"></div>
+    </div>
+  </section>
+
+  <script src="js/core/config.js"></script>
+  <script src="js/core/utils.js"></script>
+  <script src="js/core/state.js"></script>
+  <script src="js/ui/audio.js"></script>
+  <script src="js/ui/confetti.js"></script>
+  <script src="js/services/pdf-reader.js"></script>
+  <script src="js/services/gemini.js"></script>
+  <script src="js/services/pdf-exporter.js"></script>
+  <script src="js/game/loot.js"></script>
+  <script src="js/game/dungeon.js"></script>
+  <script src="js/game/combat.js"></script>
+  <script src="js/ui/screens.js"></script>
+  <script src="js/ui/map.js"></script>
+  <script src="js/ui/modal.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
