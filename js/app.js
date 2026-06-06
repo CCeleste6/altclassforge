@@ -61,14 +61,39 @@
     };
   }
 
+  let isStartingRun = false;
+
+  function startDemoFallback(settings, reason) {
+    const fallbackSettings = Object.assign({}, settings || getSettings(false), {
+      apiKey: '',
+      source: 'demo',
+      subject: 'Demo Roguelike'
+    });
+    const stages = CF.Dungeon.getDemoStages(fallbackSettings.questionCount);
+    CF.Dungeon.createRun(stages, fallbackSettings);
+    CF.Screens.showLoading(false);
+    CF.Screens.showGame();
+    CF.Map.render();
+    if (reason) {
+      console.warn('Class Forge carregou a demo offline:', reason);
+    }
+  }
+
   async function startRun(useAI) {
+    if (isStartingRun) return;
+    isStartingRun = true;
+
+    let settings = null;
     try {
       CF.Screens.showLoading(true);
-      const settings = getSettings(useAI);
-      const stages = useAI
-        ? await CF.Gemini.generateStages(settings)
-        : CF.Dungeon.getDemoStages(settings.questionCount);
+      settings = getSettings(useAI);
 
+      if (!useAI) {
+        startDemoFallback(settings);
+        return;
+      }
+
+      const stages = await CF.Gemini.generateStages(settings);
       CF.Dungeon.createRun(stages, settings);
       CF.Screens.showLoading(false);
       CF.Screens.showGame();
@@ -76,7 +101,16 @@
     } catch (error) {
       console.error(error);
       CF.Screens.showLoading(false);
+
+      if (useAI && settings) {
+        startDemoFallback(settings, error.message);
+        alert(`O Gemini falhou (${error.message}). Carreguei o Modo Demo Roguelike automaticamente para você conseguir testar as mecânicas sem API.`);
+        return;
+      }
+
       alert(`Erro: ${error.message}`);
+    } finally {
+      isStartingRun = false;
     }
   }
 
@@ -98,16 +132,17 @@
     document.body.addEventListener('click', function (event) {
       const actionElement = event.target.closest('[data-action]');
       if (!actionElement) return;
+      event.preventDefault();
       const action = actionElement.dataset.action;
       CF.Audio.playSound('click');
 
       if (action === 'start-ai') startRun(true);
-      if (action === 'start-demo') startRun(false);
-      if (action === 'dashboard') CF.Screens.showDashboard();
-      if (action === 'close-dashboard') CF.Screens.hideDashboard();
-      if (action === 'close-modal') CF.Modal.close();
-      if (action === 'export-pdf') CF.PdfExporter.exportPDF();
-      if (action === 'restart') CF.Screens.restart();
+      else if (action === 'start-demo') startRun(false);
+      else if (action === 'dashboard') CF.Screens.showDashboard();
+      else if (action === 'close-dashboard') CF.Screens.hideDashboard();
+      else if (action === 'close-modal') CF.Modal.close();
+      else if (action === 'export-pdf') CF.PdfExporter.exportPDF();
+      else if (action === 'restart') CF.Screens.restart();
     });
 
     const fileInput = byId('file-input');
@@ -141,6 +176,11 @@
     CF.Screens.showGame();
     CF.Map.render();
   }
+
+  window.CF.App = {
+    startRun: startRun,
+    startDemoFallback: startDemoFallback
+  };
 
   window.addEventListener('DOMContentLoaded', function () {
     bindActions();
