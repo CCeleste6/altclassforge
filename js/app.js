@@ -20,6 +20,13 @@
     return classes[value] ? value : 'warrior';
   }
 
+  function safeModelId(value) {
+    const models = CF.CONFIG.geminiModels || [];
+    const allowed = models.map(function (model) { return model.id; });
+    return allowed.indexOf(value) >= 0 ? value : (CF.CONFIG.geminiModel || 'gemini-2.5-flash-lite');
+  }
+
+
   function selectedClassDesc() {
     const classId = safeClassId(safeValue('class-select', 'warrior'));
     const emblem = safeChecked('grandmaster-emblem');
@@ -42,6 +49,7 @@
     const questionCount = Number(difficultyEl ? difficultyEl.value : 9) || 9;
     const classId = safeClassId(safeValue('class-select', 'warrior'));
     const emblemEquipped = safeChecked('grandmaster-emblem');
+    const modelId = safeModelId(safeValue('ai-model', CF.CONFIG.geminiModel));
 
     if (useAI && !subject && content.length < 10) {
       throw new Error('Para gerar com IA no modo livre, coloque um PDF/TXT ou cole um texto de pelo menos 10 caracteres. O Modo Demo Roguelike funciona sem conteúdo.');
@@ -57,6 +65,7 @@
       questionCount: questionCount,
       classId: classId,
       emblemEquipped: emblemEquipped,
+      modelId: modelId,
       source: useAI ? 'gemini' : 'demo'
     };
   }
@@ -85,7 +94,7 @@
 
     let settings = null;
     try {
-      CF.Screens.showLoading(true);
+      CF.Screens.showLoading(true, useAI ? 'Preparando chamada ao Gemini...' : 'Carregando Modo Demo Roguelike...');
       settings = getSettings(useAI);
 
       if (!useAI) {
@@ -103,8 +112,12 @@
       CF.Screens.showLoading(false);
 
       if (useAI && settings) {
-        startDemoFallback(settings, error.message);
-        alert(`O Gemini falhou (${error.message}). Carreguei o Modo Demo Roguelike automaticamente para você conseguir testar as mecânicas sem API.`);
+        const openDemo = confirm(`Não consegui gerar a dungeon com IA.
+
+${error.message}
+
+Quer abrir o Modo Demo Roguelike mesmo assim?`);
+        if (openDemo) startDemoFallback(settings, error.message);
         return;
       }
 
