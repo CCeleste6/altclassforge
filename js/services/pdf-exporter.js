@@ -24,10 +24,16 @@
   }
 
   function sourceForType(stage, type) {
-    if (type === 'multiple') return stage.multiple;
-    if (type === 'scientific') return stage.scientific;
-    if (type === 'quick') return stage.quick;
-    return stage.standard;
+    const safeStage = stage || {};
+    if (type === 'multiple') return safeStage.multiple || {};
+    if (type === 'scientific') return safeStage.scientific || {};
+    if (type === 'quick') return safeStage.quick || {};
+    return safeStage.standard || {};
+  }
+
+  function questionTypeConfig(type) {
+    if (CF.Dungeon && CF.Dungeon.questionTypeConfig) return CF.Dungeon.questionTypeConfig(type);
+    return (CONFIG.questionTypes && CONFIG.questionTypes[type]) || (CONFIG.questionTypes && CONFIG.questionTypes.standard) || { label: 'Questão Padrão', short: 'Padrão', icon: '⚔️' };
   }
 
   function bossTypes(node) {
@@ -35,8 +41,8 @@
   }
 
   function addQuestion(doc, run, node, type, number, y, pageWidth, pageHeight) {
-    const stage = run.stages[node.stageIndex];
-    const typeConfig = CONFIG.questionTypes[type] || CONFIG.questionTypes.standard;
+    const stage = run.stages[node.stageIndex] || {};
+    const typeConfig = questionTypeConfig(type);
     const source = sourceForType(stage, type);
 
     if (y + 18 > pageHeight) { doc.addPage(); y = 20; }
@@ -74,8 +80,8 @@
   }
 
   function addAnswer(doc, run, node, type, number, y, pageHeight) {
-    const stage = run.stages[node.stageIndex];
-    const typeConfig = CONFIG.questionTypes[type] || CONFIG.questionTypes.standard;
+    const stage = run.stages[node.stageIndex] || {};
+    const typeConfig = questionTypeConfig(type);
     const source = sourceForType(stage, type);
 
     if (y > pageHeight) { doc.addPage(); y = 20; }
@@ -94,7 +100,8 @@
       doc.text(`Resposta: ${answer}`, 15, y);
     } else {
       const correct = Number(source.correct || 0);
-      doc.text(`Resposta: ${Utils.letter(correct)}) ${source.options[correct] || ''}`, 15, y);
+      const options = Array.isArray(source.options) ? source.options : [];
+      doc.text(`Resposta: ${Utils.letter(correct)}) ${options[correct] || ''}`, 15, y);
     }
     doc.setTextColor(0, 0, 0);
     y += 9;
