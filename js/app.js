@@ -1,24 +1,47 @@
 (function () {
   window.CF = window.CF || {};
 
+  function byId(id) {
+    return document.getElementById(id);
+  }
+
+  function safeValue(id, fallback) {
+    const el = byId(id);
+    return el ? el.value : fallback;
+  }
+
+  function safeChecked(id) {
+    const el = byId(id);
+    return el ? Boolean(el.checked) : false;
+  }
+
+  function safeClassId(value) {
+    const classes = CF.CONFIG.classes || {};
+    return classes[value] ? value : 'warrior';
+  }
+
   function selectedClassDesc() {
-    const classId = document.getElementById('class-select').value;
-    const emblem = document.getElementById('grandmaster-emblem').checked;
-    return emblem ? CF.CONFIG.grandmaster.desc : (CF.CONFIG.classes[classId] || CF.CONFIG.classes.warrior).desc;
+    const classId = safeClassId(safeValue('class-select', 'warrior'));
+    const emblem = safeChecked('grandmaster-emblem');
+    const classConfig = emblem && CF.CONFIG.grandmaster ? CF.CONFIG.grandmaster : (CF.CONFIG.classes[classId] || CF.CONFIG.classes.warrior);
+    return classConfig.desc || 'Aventura equilibrada.';
   }
 
   function syncClassDescription() {
-    const desc = document.getElementById('class-desc');
+    const desc = byId('class-desc');
     if (desc) desc.textContent = selectedClassDesc();
   }
 
   function getSettings(useAI) {
-    const subject = document.getElementById('subject').value;
-    const content = document.getElementById('class-content').value.trim();
-    const apiKey = document.getElementById('api-key').value.trim();
-    const questionCount = Number(document.getElementById('difficulty').value || 9);
-    const classId = document.getElementById('class-select').value || 'warrior';
-    const emblemEquipped = document.getElementById('grandmaster-emblem').checked;
+    const subject = safeValue('subject', '').trim();
+    const contentEl = byId('class-content');
+    const apiKeyEl = byId('api-key');
+    const difficultyEl = byId('difficulty');
+    const content = contentEl ? contentEl.value.trim() : '';
+    const apiKey = apiKeyEl ? apiKeyEl.value.trim() : '';
+    const questionCount = Number(difficultyEl ? difficultyEl.value : 9) || 9;
+    const classId = safeClassId(safeValue('class-select', 'warrior'));
+    const emblemEquipped = safeChecked('grandmaster-emblem');
 
     if (useAI && !subject && content.length < 10) {
       throw new Error('Para gerar com IA no modo livre, coloque um PDF/TXT ou cole um texto de pelo menos 10 caracteres. O Modo Demo Roguelike funciona sem conteúdo.');
@@ -51,6 +74,7 @@
       CF.Screens.showGame();
       CF.Map.render();
     } catch (error) {
+      console.error(error);
       CF.Screens.showLoading(false);
       alert(`Erro: ${error.message}`);
     }
@@ -59,12 +83,13 @@
   async function handleFileInput(event) {
     const file = event.target.files[0];
     if (!file) return;
-    const textarea = document.getElementById('class-content');
+    const textarea = byId('class-content');
     try {
-      textarea.value = '⏳ Lendo arquivo...';
-      textarea.value = await CF.PdfReader.readUploadedFile(file);
+      if (textarea) textarea.value = '⏳ Lendo arquivo...';
+      const text = await CF.PdfReader.readUploadedFile(file);
+      if (textarea) textarea.value = text;
     } catch (error) {
-      textarea.value = '';
+      if (textarea) textarea.value = '';
       alert(`Erro ao ler arquivo: ${error.message}`);
     }
   }
@@ -85,24 +110,27 @@
       if (action === 'restart') CF.Screens.restart();
     });
 
-    const fileInput = document.getElementById('file-input');
-    fileInput.addEventListener('change', handleFileInput);
+    const fileInput = byId('file-input');
+    if (fileInput) fileInput.addEventListener('change', handleFileInput);
 
-    const classSelect = document.getElementById('class-select');
-    const emblem = document.getElementById('grandmaster-emblem');
-    classSelect.addEventListener('change', syncClassDescription);
-    emblem.addEventListener('change', syncClassDescription);
+    const classSelect = byId('class-select');
+    const emblem = byId('grandmaster-emblem');
+    if (classSelect) classSelect.addEventListener('change', syncClassDescription);
+    if (emblem) emblem.addEventListener('change', syncClassDescription);
 
-    const gameArea = document.getElementById('game-area');
-    gameArea.addEventListener('wheel', function (event) {
-      if (window.innerWidth > 768) {
-        event.preventDefault();
-        gameArea.scrollLeft += event.deltaY;
-      }
-    }, { passive: false });
+    const gameArea = byId('game-area');
+    if (gameArea) {
+      gameArea.addEventListener('wheel', function (event) {
+        if (window.innerWidth > 768) {
+          event.preventDefault();
+          gameArea.scrollLeft += event.deltaY;
+        }
+      }, { passive: false });
+    }
   }
 
   function tryLoadSave() {
+    CF.State.clearLegacySaves && CF.State.clearLegacySaves();
     const saved = CF.State.loadRun();
     if (!saved || !saved.nodes.length) return;
     const shouldContinue = confirm('💾 Existe uma run do Class Forge em andamento. Deseja continuar?');
