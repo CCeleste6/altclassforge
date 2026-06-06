@@ -224,6 +224,8 @@
     run.meta.classId = classId;
     run.meta.classLabel = classConfig.label || 'Guerreiro';
     run.meta.emblemEquipped = Boolean(safeSettings.emblemEquipped);
+    run.meta.modelId = safeSettings.modelId || '';
+    run.meta.usedModel = safeSettings.usedModel || safeSettings.modelId || '';
     run.vouchers = questionCount <= 6 ? 1 : questionCount <= 9 ? 2 : 3;
     run.stages = normalizedStages;
     run.nodes = buildNodes(normalizedStages, questionCount, safeSettings);
