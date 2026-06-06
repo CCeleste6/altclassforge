@@ -51,16 +51,32 @@ FORMATO EXATO:
     return CF.Dungeon.normalizeStage(stage, index);
   }
 
+  function friendlyGeminiError(status, bodyText) {
+    if (status === 503) return 'Gemini retornou HTTP 503. Isso costuma ser indisponibilidade temporária/sobrecarga do serviço.';
+    if (status === 429) return 'Gemini retornou HTTP 429. Limite de uso atingido ou muitas requisições em pouco tempo.';
+    if (status === 401 || status === 403) return 'Gemini recusou a API Key. Verifique se a chave está correta e habilitada.';
+    if (status === 400) return 'Gemini recusou a requisição. O prompt/conteúdo pode ter vindo grande demais ou inválido.';
+    return `Gemini retornou erro HTTP ${status}.${bodyText ? ' Detalhe: ' + bodyText.substring(0, 160) : ''}`;
+  }
+
   async function generateStages(settings) {
     const prompt = buildPrompt(settings);
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CF.CONFIG.geminiModel}:generateContent?key=${encodeURIComponent(settings.apiKey)}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-    });
+    let response;
+
+    try {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${CF.CONFIG.geminiModel}:generateContent?key=${encodeURIComponent(settings.apiKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+    } catch (networkError) {
+      throw new Error('Não foi possível conectar ao Gemini. Verifique internet, bloqueio do navegador ou CORS.');
+    }
 
     if (!response.ok) {
-      throw new Error(`Gemini retornou erro HTTP ${response.status}.`);
+      let bodyText = '';
+      try { bodyText = await response.text(); } catch (ignore) {}
+      throw new Error(friendlyGeminiError(response.status, bodyText));
     }
 
     const data = await response.json();
@@ -82,6 +98,7 @@ FORMATO EXATO:
   }
 
   CF.Gemini = {
-    generateStages: generateStages
+    generateStages: generateStages,
+    friendlyGeminiError: friendlyGeminiError
   };
 }());
