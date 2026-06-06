@@ -13,7 +13,13 @@
   };
 
   function getQuestionConfig(node) {
-    return CONFIG.questionTypes[node.questionType] || CONFIG.questionTypes.standard;
+    const type = node && node.questionType ? node.questionType : 'standard';
+    if (CF.Dungeon && CF.Dungeon.questionTypeConfig) return CF.Dungeon.questionTypeConfig(type);
+    return (CONFIG.questionTypes && CONFIG.questionTypes[type]) || (CONFIG.questionTypes && CONFIG.questionTypes.standard) || {
+      label: 'Questão Padrão',
+      short: 'Padrão',
+      icon: '⚔️'
+    };
   }
 
   function getCardIcon(node, isVisible) {
@@ -43,9 +49,11 @@
   function render() {
     const run = CF.State.getRun();
     const container = document.getElementById('map-container');
+    if (!container) return;
     container.innerHTML = '';
 
-    run.nodes.forEach(function (node, index) {
+    (run.nodes || []).forEach(function (node, index) {
+      if (!node) return;
       if (index > 0) {
         const connector = document.createElement('div');
         connector.className = 'connector';
@@ -57,7 +65,7 @@
       const card = document.createElement('article');
       card.className = `card ${node.kind} ${node.completed ? 'cleared' : ''} ${isLocked ? 'locked' : ''} ${!visible ? 'obscured' : ''} ${index === run.currentNodeIndex ? 'current' : ''}`;
       card.innerHTML = `
-        <div class="card-floor">Casa ${node.floor} · ${Utils.escapeHTML(getTypeLabel(node, visible))}</div>
+        <div class="card-floor">Casa ${node.floor || index + 1} · ${Utils.escapeHTML(getTypeLabel(node, visible))}</div>
         <div class="card-icon">${getCardIcon(node, visible)}</div>
         <div class="card-title">${Utils.escapeHTML(visible ? node.title : '???')}</div>
         <div class="card-desc">${Utils.escapeHTML(visible ? (node.desc || '') : 'Complete casas ou use Visão de Água para revelar mais adiante.')}</div>

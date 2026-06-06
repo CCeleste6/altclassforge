@@ -71,24 +71,33 @@
   }
 
   function playBossMusic() {
-    const ctx = getAudioCtx();
+    let ctx = null;
+    try {
+      ctx = getAudioCtx();
+    } catch (_) {
+      return;
+    }
     if (musicInterval) clearInterval(musicInterval);
     let noteIndex = 0;
     const motif = [349.23, 415.3, 466.16, 523.25, 554.37, 523.25, 466.16, 415.3];
     musicInterval = setInterval(function () {
-      const now = ctx.currentTime;
-      const freq = motif[noteIndex % motif.length];
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.value = freq;
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      gain.gain.setValueAtTime(0.045, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
-      osc.start(now);
-      osc.stop(now + 0.13);
-      noteIndex += 1;
+      try {
+        const now = ctx.currentTime;
+        const freq = motif[noteIndex % motif.length];
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        gain.gain.setValueAtTime(0.045, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.13);
+        osc.start(now);
+        osc.stop(now + 0.13);
+        noteIndex += 1;
+      } catch (_) {
+        stopBossMusic();
+      }
     }, 150);
   }
 

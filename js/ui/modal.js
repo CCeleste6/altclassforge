@@ -40,8 +40,13 @@
     return CF.State.getRun().stages[node.stageIndex];
   }
 
+  function questionTypeConfig(type) {
+    if (CF.Dungeon && CF.Dungeon.questionTypeConfig) return CF.Dungeon.questionTypeConfig(type);
+    return (CONFIG.questionTypes && CONFIG.questionTypes[type]) || (CONFIG.questionTypes && CONFIG.questionTypes.standard) || { icon: '⚔️', label: 'Questão Padrão', short: 'Padrão' };
+  }
+
   function getQuestionLabel(type) {
-    const config = CONFIG.questionTypes[type] || CONFIG.questionTypes.standard;
+    const config = questionTypeConfig(type);
     return `${config.icon} ${config.label}`;
   }
 
@@ -57,7 +62,7 @@
   }
 
   function loreHTML(node, type) {
-    const typeConfig = CONFIG.questionTypes[type] || CONFIG.questionTypes.standard;
+    const typeConfig = questionTypeConfig(type);
     return `
       <div class="question-meta">
         <span>${typeConfig.icon} ${Utils.escapeHTML(typeConfig.label)}</span>
@@ -218,6 +223,7 @@
   function renderBossStep() {
     const run = CF.State.getRun();
     const node = run.nodes[currentNodeIndex];
+    if (!node) return;
     const steps = node.bossSteps || ['standard', 'multiple', 'scientific', 'quick'];
     const step = steps[node.bossStep || 0];
     document.body.classList.add('boss-mode');
@@ -228,6 +234,7 @@
   function openBattle(index) {
     currentNodeIndex = index;
     const node = CF.State.getRun().nodes[index];
+    if (!node) return;
     if (node.kind === 'boss') {
       CF.Audio.playSound('boss');
       CF.Audio.playBossMusic();
