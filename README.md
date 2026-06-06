@@ -1,38 +1,38 @@
-# Class Forge Roguelike v4.2
+# Class Forge Roguelike v4.3
 
-Hotfix focado no modo demo e na queda do Gemini.
+Versão com hotfix do modo IA real.
 
-## O que mudou na v4.2
+## O que mudou na v4.3
 
-- O botão **Modo Demo Roguelike** não chama o Gemini em nenhuma situação.
-- Se o usuário clicar em **Forjar Dungeon com IA** e o Gemini retornar erro 503, 429, 403 etc., o jogo carrega automaticamente a demo para permitir testar as mecânicas.
-- Todos os botões principais agora usam `type="button"` para evitar comportamento inesperado no navegador.
-- O cache do GitHub Pages foi forçado com `?v=4.2.0`.
-- A chave de save local mudou para `classForgeRoguelikeSaveV42`, evitando conflito com saves antigos.
-- As mensagens de erro do Gemini ficaram mais claras.
+- O botão **Forjar Dungeon com IA** agora tenta gerar de verdade antes de desistir.
+- O modelo padrão passou para **Gemini 2.5 Flash-Lite**, que é mais leve.
+- Foi adicionado seletor de modelo: Flash-Lite, Flash e Flash Latest.
+- Em erros temporários do Gemini, como 429, 500, 503 e 504, o jogo tenta novamente com espera curta.
+- Se o modelo escolhido falhar, o jogo tenta modelos alternativos automaticamente.
+- O carregamento agora mostra qual modelo está sendo chamado.
+- Se a IA falhar mesmo depois das tentativas, o jogo não finge sucesso: ele pergunta se você quer abrir a demo.
+- O prompt agora pede JSON puro e usa `responseMimeType: application/json`.
+- Cache atualizado para `v=4.3.0`.
+- Save local atualizado para `classForgeRoguelikeSaveV43`.
 
-## Como testar no GitHub Pages
+## Como subir no GitHub Pages
 
-1. Substitua os arquivos do repositório pelos arquivos desta versão.
-2. Espere o GitHub Pages atualizar.
-3. Abra o site com `Ctrl + F5`.
-4. Escolha uma classe.
-5. Clique em **Modo Demo Roguelike**.
-
-O Modo Demo Roguelike deve abrir o mapa mesmo sem API Key, sem PDF e sem texto.
-
-## Estrutura
+1. Extraia o pacote.
+2. Substitua os arquivos antigos do repositório por estes arquivos.
+3. Mantenha a estrutura:
 
 ```txt
 index.html
 css/
-  base.css
-  layout.css
-  components.css
 js/
-  app.js
-  core/
-  game/
-  services/
-  ui/
+README.md
 ```
+
+4. Aguarde o GitHub Pages atualizar.
+5. Abra o site com Ctrl + F5 ou em aba anônima.
+
+## Observação importante
+
+Erro HTTP 503 vem do serviço do Gemini, não do Class Forge. Esta versão reduz bastante a chance de travar por isso porque tenta novamente e troca de modelo, mas nenhum site estático consegue garantir 100% se a API externa estiver temporariamente indisponível.
+
+Para uso público de verdade, o ideal é mover a API Key para um backend/proxy, porque GitHub Pages roda tudo no navegador.
