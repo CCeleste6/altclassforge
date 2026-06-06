@@ -1,124 +1,263 @@
 (function () {
   window.CF = window.CF || {};
 
+  const CONFIG = CF.CONFIG;
   const Utils = CF.Utils;
 
   const POWER_UPS = [
     {
-      id: 'coin_bonus',
-      icon: '🪙',
-      name: 'Bolsa do Mercador',
-      desc: '+3 moedas em toda vitória de combate.',
-      apply: function () {}
+      id: 'lightning_attack',
+      name: 'Ataque Relâmpago',
+      icon: '⚡',
+      tags: ['quick'],
+      desc: 'Se responder uma Questão Rápida em 10s ou menos, sua próxima questão não rápida terá 1 alternativa a menos.'
     },
     {
-      id: 'max_hp',
-      icon: '❤️',
-      name: 'Coração de Aço',
-      desc: '+10 HP máximo e cura 10 HP.',
-      apply: function (run) {
-        run.maxHp += 10;
-        run.hp = Math.min(run.maxHp, run.hp + 10);
-      }
+      id: 'chronometer',
+      name: 'Cronômetro',
+      icon: '⏱️',
+      tags: ['quick'],
+      max: CONFIG.maxChronometers,
+      desc: 'Questões Rápidas ganham +10s por Cronômetro. Máximo: 3.'
     },
     {
-      id: 'focus',
-      icon: '🧠',
-      name: 'Foco do Sábio',
-      desc: 'Reduz o dano por erro em 3. Acumula até dano mínimo 5.',
-      apply: function () {}
+      id: 'sift',
+      name: 'Habilidade: Cernir',
+      icon: '🧪',
+      tags: ['scientific'],
+      desc: 'Em Questões Científicas, as informações vitais aparecem separadas no final do enunciado.'
     },
     {
-      id: 'oracle',
-      icon: '🎫',
-      name: 'Óculos do Oráculo',
-      desc: '+1 voucher de dica.',
-      apply: function (run) {
-        run.vouchers += 1;
-      }
+      id: 'water_vision',
+      name: 'Habilidade: Visão de Água',
+      icon: '💧',
+      tags: ['scientific'],
+      desc: 'Após completar uma Questão Científica, revela uma casa adicional à frente no mapa.'
     },
     {
-      id: 'luck',
-      icon: '🍀',
-      name: 'Sorte do Ferreiro',
-      desc: '+20% moedas recebidas em combate.',
-      apply: function () {}
+      id: 'two_arrows',
+      name: 'Duas Flechas, Um Coelho',
+      icon: '🏹',
+      tags: ['multiple'],
+      desc: 'Ao completar uma Questão Múltipla, recebe um eco de recompensa da próxima casa de questão.'
+    },
+    {
+      id: 'needle_thread',
+      name: 'Linha na Agulha',
+      icon: '🪡',
+      tags: ['multiple'],
+      desc: 'Ao completar uma Questão Múltipla sem erros, tem 10% de chance de completar automaticamente a próxima casa de questão.'
+    },
+    {
+      id: 'master_chef',
+      name: 'Mestre Cuca',
+      icon: '🍳',
+      tags: ['general'],
+      desc: 'A próxima questão não pode ser do mesmo tipo da questão anterior.'
+    },
+    {
+      id: 'spoils',
+      name: 'Despojos',
+      icon: '💰',
+      tags: ['gold'],
+      desc: 'Você recebe o dobro de moedas. Se for Ladino ou Grão-Mestre, recebe o triplo.'
     },
     {
       id: 'shield',
+      name: 'Escudo Rúnico',
       icon: '🛡️',
-      name: 'Escudo de Pergaminho',
-      desc: 'Bloqueia o próximo erro sem perder HP.',
-      apply: function (run) {
-        run.shield += 1;
-      }
-    },
-    {
-      id: 'review_key',
-      icon: '🗝️',
-      name: 'Chave de Revisão',
-      desc: 'Respostas abertas exigem 1 palavra-chave a menos.',
-      apply: function () {}
+      tags: ['general'],
+      desc: 'Ganha 1 escudo que bloqueia o próximo erro.'
     },
     {
       id: 'heal',
-      icon: '✨',
-      name: 'Fonte Menor',
-      desc: 'Cura 25 HP imediatamente.',
-      apply: function (run) {
-        run.hp = Math.min(run.maxHp, run.hp + 25);
-      }
+      name: 'Poção de Revisão',
+      icon: '🧪',
+      tags: ['general'],
+      desc: 'Recupera 25 HP imediatamente.'
+    },
+    {
+      id: 'oracle',
+      name: 'Voucher do Oráculo',
+      icon: '🎫',
+      tags: ['general'],
+      desc: 'Ganha 1 voucher de dica.'
+    },
+    {
+      id: 'focus',
+      name: 'Foco do Aprendiz',
+      icon: '📘',
+      tags: ['general'],
+      desc: 'Reduz o dano por erro em 3 HP enquanto estiver ativo.'
     }
   ];
 
-  function getPowerUps() {
-    return POWER_UPS.slice();
-  }
-
   function getPowerUp(id) {
-    return POWER_UPS.find(function (power) { return power.id === id; });
+    return POWER_UPS.find(function (power) { return power.id === id; }) || POWER_UPS[0];
   }
 
-  function grantPowerUp(powerId) {
-    const power = getPowerUp(powerId);
-    if (!power) return;
+  function canReceive(power) {
+    if (!power) return false;
+    if (power.max && CF.State.getPowerLevel(power.id) >= power.max) return false;
+    return true;
+  }
+
+  function weightedPool() {
+    const classConfig = CF.State.getClassConfig();
+    const preferred = classConfig.preferredTags || [];
+    const pool = [];
+    POWER_UPS.forEach(function (power) {
+      if (!canReceive(power)) return;
+      const hasPreferredTag = (power.tags || []).some(function (tag) { return preferred.includes(tag); });
+      const copies = hasPreferredTag ? 4 : power.tags.includes('general') ? 2 : 1;
+      for (let i = 0; i < copies; i += 1) pool.push(power);
+    });
+    return pool.length ? pool : POWER_UPS.filter(canReceive);
+  }
+
+  function randomChoices(count) {
+    const pool = weightedPool();
+    const ids = [];
+    const result = [];
+    let safety = 0;
+    while (result.length < count && safety < 80) {
+      safety += 1;
+      const power = Utils.pick(pool);
+      if (!power || ids.includes(power.id)) continue;
+      ids.push(power.id);
+      result.push(power);
+    }
+    return result;
+  }
+
+  function grantPowerUp(id) {
+    const power = getPowerUp(id);
+    if (!canReceive(power)) {
+      alert(`${power.name} já atingiu o limite.`);
+      return false;
+    }
+
     CF.State.mutate(function (run) {
-      run.powerUps.push({ id: power.id, icon: power.icon, name: power.name, desc: power.desc });
-      power.apply(run);
+      if (id === 'heal') {
+        run.hp = Math.min(run.maxHp, run.hp + 25);
+      } else if (id === 'shield') {
+        run.shield += 1;
+      } else if (id === 'oracle') {
+        run.vouchers += 1;
+      } else {
+        run.powerUps.push(Object.assign({}, power));
+        if (id === 'master_chef') run.flags.masterChefActive = true;
+      }
     });
     CF.Screens.syncHUD();
-  }
-
-  function getRewardValue(node) {
-    const run = CF.State.getRun();
-    const base = CF.CONFIG.baseRewards[node.kind] || CF.CONFIG.baseRewards.battle;
-    const coinFlat = CF.State.getPowerLevel('coin_bonus') * 3;
-    const luckMultiplier = 1 + (CF.State.getPowerLevel('luck') * 0.2);
-    return Math.round((base + coinFlat) * luckMultiplier);
+    CF.Screens.updateDashboard && CF.Screens.updateDashboard();
+    return true;
   }
 
   function getWrongDamage() {
     const focus = CF.State.getPowerLevel('focus');
-    return Math.max(5, CF.CONFIG.baseWrongDamage - (focus * 3));
+    return Math.max(5, CONFIG.baseWrongDamage - focus * 3);
   }
 
-  function getStealthRequiredMatches(keywordCount) {
-    const base = Math.ceil(keywordCount / 2);
-    const reviewKeys = CF.State.getPowerLevel('review_key');
-    return Math.max(1, base - reviewKeys);
+  function getQuickSeconds(stage) {
+    const base = Number(stage && stage.quick && stage.quick.seconds ? stage.quick.seconds : CONFIG.quickBaseSeconds);
+    const bonus = Math.min(CF.State.getPowerLevel('chronometer'), CONFIG.maxChronometers) * 10;
+    return base + bonus;
   }
 
-  function randomChoices(count) {
-    return Utils.sample(POWER_UPS, count || 3);
+  function getRewardMultiplier() {
+    const run = CF.State.getRun();
+    let multiplier = 1;
+    if (CF.State.hasPower('spoils')) {
+      multiplier *= (run.meta.classId === 'rogue' || run.meta.emblemEquipped) ? 3 : 2;
+    }
+    if (run.meta.emblemEquipped) multiplier *= 2;
+    return multiplier;
+  }
+
+  function getRewardValue(node) {
+    if (!node) return 0;
+    if (node.kind === 'boss') return CONFIG.baseRewards.boss * getRewardMultiplier();
+    if (node.kind !== 'battle') return 0;
+    const base = CONFIG.baseRewards[node.questionType] || 10;
+    return Math.round(base * getRewardMultiplier());
+  }
+
+  function getVisibleOptions(stage, questionType, node) {
+    const source = questionType === 'scientific' ? stage.scientific : questionType === 'quick' ? stage.quick : stage.standard;
+    const options = (source.options || []).map(function (text, index) {
+      return { text: text, originalIndex: index };
+    });
+
+    if (!node || questionType === 'quick' || !CF.State.getRun().flags.lightningReady) return options;
+    if (node.lightningApplied) return options.filter(function (option) { return option.originalIndex !== node.hiddenByLightning; });
+
+    const correct = Number(source.correct);
+    const wrongIndexes = options.map(function (option) { return option.originalIndex; }).filter(function (index) { return index !== correct; });
+    const hidden = Utils.pick(wrongIndexes);
+    node.hiddenByLightning = hidden;
+    node.lightningApplied = true;
+    CF.State.mutate(function (run) {
+      run.flags.lightningReady = false;
+      run.flags.lightningAppliedToNode = node.id;
+      run.flags.lastEffectLog = 'Ataque Relâmpago removeu uma alternativa incorreta.';
+    });
+    return options.filter(function (option) { return option.originalIndex !== hidden; });
+  }
+
+  function getStealthRequiredMatches(total) {
+    if (!total) return 1;
+    return Math.ceil(total / 2);
+  }
+
+  function resolveTypeEffects(node, elapsedSeconds) {
+    const messages = [];
+    const run = CF.State.getRun();
+    const type = node.kind === 'boss' ? (node.bossSteps[node.bossStep] || 'standard') : node.questionType;
+
+    if (type === 'quick' && CF.State.hasPower('lightning_attack') && elapsedSeconds <= CONFIG.quickPerfectSeconds) {
+      run.flags.lightningReady = true;
+      messages.push('Ataque Relâmpago carregado: a próxima questão não rápida terá uma alternativa a menos.');
+    }
+
+    if (type === 'scientific' && CF.State.hasPower('water_vision')) {
+      run.flags.waterVisionBonus = Math.max(run.flags.waterVisionBonus || 0, 1);
+      messages.push('Visão de Água revelou uma casa adicional à frente.');
+    }
+
+    if (type === 'multiple' && CF.State.hasPower('two_arrows')) {
+      const next = CF.Dungeon.findNextIncompleteQuestion(CF.Modal.getCurrentNodeIndex() + 1);
+      if (next) {
+        const echoReward = Math.max(1, Math.floor(getRewardValue(next.node) / 2));
+        run.coins += echoReward;
+        run.stats.coinsEarned += echoReward;
+        messages.push(`Duas Flechas, Um Coelho concedeu ${echoReward} moedas extras.`);
+      }
+    }
+
+    if (type === 'multiple' && CF.State.hasPower('needle_thread') && Number(node.mistakes || 0) === 0) {
+      if (Math.random() < 0.1) {
+        run.flags.autoCompleteNext = true;
+        messages.push('Linha na Agulha acertou o ponto fraco: próxima questão será concluída automaticamente.');
+      } else {
+        messages.push('Linha na Agulha tentou ativar, mas falhou desta vez.');
+      }
+    }
+
+    return messages.join(' ');
   }
 
   CF.Loot = {
-    getPowerUps: getPowerUps,
+    all: POWER_UPS,
     getPowerUp: getPowerUp,
+    randomChoices: randomChoices,
     grantPowerUp: grantPowerUp,
-    getRewardValue: getRewardValue,
     getWrongDamage: getWrongDamage,
+    getQuickSeconds: getQuickSeconds,
+    getRewardValue: getRewardValue,
+    getVisibleOptions: getVisibleOptions,
     getStealthRequiredMatches: getStealthRequiredMatches,
-    randomChoices: randomChoices
+    resolveTypeEffects: resolveTypeEffects,
+    getRewardMultiplier: getRewardMultiplier
   };
 }());
