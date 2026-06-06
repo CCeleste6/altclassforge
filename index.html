@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Class Forge - Roguelike Beta 4.1</title>
+  <title>Class Forge - Roguelike Beta 4.2</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
@@ -13,9 +13,9 @@
     }
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link rel="stylesheet" href="css/base.css?v=4.1.1" />
-  <link rel="stylesheet" href="css/layout.css?v=4.1.1" />
-  <link rel="stylesheet" href="css/components.css?v=4.1.1" />
+  <link rel="stylesheet" href="css/base.css?v=4.2.0" />
+  <link rel="stylesheet" href="css/layout.css?v=4.2.0" />
+  <link rel="stylesheet" href="css/components.css?v=4.2.0" />
 </head>
 <body>
   <canvas id="confetti-canvas"></canvas>
@@ -35,12 +35,12 @@
       <div class="hud-pill" title="Dicas disponíveis">🎫 <span id="voucher-count">0</span></div>
       <div class="hud-pill" title="Escudos contra erro">🛡️ <span id="shield-count">0</span></div>
     </div>
-    <button class="menu-btn" data-action="dashboard">⚙️ Menu</button>
+    <button type="button" class="menu-btn" data-action="dashboard">⚙️ Menu</button>
   </header>
 
   <main id="config-screen" class="screen-overlay screen-visible">
     <h1 class="brand-title">CLASS FORGE</h1>
-    <div class="version-badge">Roguelike Beta v4.1</div>
+    <div class="version-badge">Roguelike Beta v4.2</div>
 
     <section class="config-box" id="config-box">
       <div class="section-title">📜 Matéria</div>
@@ -86,9 +86,9 @@
       <div class="section-title">🔑 API Key (Gemini)</div>
       <input type="password" id="api-key" placeholder="Cole sua chave aqui para gerar com IA" />
 
-      <button class="btn-main" data-action="start-ai">Forjar Dungeon com IA</button>
-      <button class="btn-main btn-sec" data-action="start-demo">Modo Demo Roguelike</button>
-      <button class="btn-main btn-sec" data-action="dashboard">📊 Relatórios</button>
+      <button type="button" class="btn-main" data-action="start-ai">Forjar Dungeon com IA</button>
+      <button type="button" class="btn-main btn-sec" data-action="start-demo">Modo Demo Roguelike</button>
+      <button type="button" class="btn-main btn-sec" data-action="dashboard">📊 Relatórios</button>
     </section>
 
     <section id="loading" class="loading-box hidden">
@@ -103,11 +103,11 @@
     <div class="dashboard-card">
       <div class="dash-header">
         <h2>Painel de Controle</h2>
-        <button class="menu-btn" data-action="close-dashboard">VOLTAR</button>
+        <button type="button" class="menu-btn" data-action="close-dashboard">VOLTAR</button>
       </div>
 
-      <button class="btn-main" data-action="export-pdf">🖨️ Baixar prova e gabarito</button>
-      <button class="btn-main btn-sec" data-action="restart">🔄 Reiniciar run</button>
+      <button type="button" class="btn-main" data-action="export-pdf">🖨️ Baixar prova e gabarito</button>
+      <button type="button" class="btn-main btn-sec" data-action="restart">🔄 Reiniciar run</button>
 
       <h3 class="subheading">Estatísticas da Run</h3>
       <div class="stat-grid">
@@ -133,26 +133,26 @@
     <div class="battle-window">
       <div class="battle-header">
         <h2 id="modal-title">DESAFIO</h2>
-        <button class="icon-btn" data-action="close-modal" aria-label="Fechar">✕</button>
+        <button type="button" class="icon-btn" data-action="close-modal" aria-label="Fechar">✕</button>
       </div>
       <div id="modal-body" class="battle-body"></div>
     </div>
   </section>
 
-  <script src="js/core/config.js?v=4.1.1"></script>
-  <script src="js/core/utils.js?v=4.1.1"></script>
-  <script src="js/core/state.js?v=4.1.1"></script>
-  <script src="js/ui/audio.js?v=4.1.1"></script>
-  <script src="js/ui/confetti.js?v=4.1.1"></script>
-  <script src="js/services/pdf-reader.js?v=4.1.1"></script>
-  <script src="js/services/gemini.js?v=4.1.1"></script>
-  <script src="js/services/pdf-exporter.js?v=4.1.1"></script>
-  <script src="js/game/loot.js?v=4.1.1"></script>
-  <script src="js/game/dungeon.js?v=4.1.1"></script>
-  <script src="js/game/combat.js?v=4.1.1"></script>
-  <script src="js/ui/screens.js?v=4.1.1"></script>
-  <script src="js/ui/map.js?v=4.1.1"></script>
-  <script src="js/ui/modal.js?v=4.1.1"></script>
-  <script src="js/app.js?v=4.1.1"></script>
+  <script src="js/core/config.js?v=4.2.0"></script>
+  <script src="js/core/utils.js?v=4.2.0"></script>
+  <script src="js/core/state.js?v=4.2.0"></script>
+  <script src="js/ui/audio.js?v=4.2.0"></script>
+  <script src="js/ui/confetti.js?v=4.2.0"></script>
+  <script src="js/services/pdf-reader.js?v=4.2.0"></script>
+  <script src="js/services/gemini.js?v=4.2.0"></script>
+  <script src="js/services/pdf-exporter.js?v=4.2.0"></script>
+  <script src="js/game/loot.js?v=4.2.0"></script>
+  <script src="js/game/dungeon.js?v=4.2.0"></script>
+  <script src="js/game/combat.js?v=4.2.0"></script>
+  <script src="js/ui/screens.js?v=4.2.0"></script>
+  <script src="js/ui/map.js?v=4.2.0"></script>
+  <script src="js/ui/modal.js?v=4.2.0"></script>
+  <script src="js/app.js?v=4.2.0"></script>
 </body>
 </html>

@@ -1,82 +1,38 @@
-# Class Forge - Roguelike Beta 4.0
+# Class Forge Roguelike v4.2
 
-Versão modular do Class Forge focada em transformar o antigo quiz em uma run roguelike educacional.
+Hotfix focado no modo demo e na queda do Gemini.
 
-## Como abrir
+## O que mudou na v4.2
 
-Abra `index.html` no navegador ou publique a pasta inteira no GitHub Pages.
+- O botão **Modo Demo Roguelike** não chama o Gemini em nenhuma situação.
+- Se o usuário clicar em **Forjar Dungeon com IA** e o Gemini retornar erro 503, 429, 403 etc., o jogo carrega automaticamente a demo para permitir testar as mecânicas.
+- Todos os botões principais agora usam `type="button"` para evitar comportamento inesperado no navegador.
+- O cache do GitHub Pages foi forçado com `?v=4.2.0`.
+- A chave de save local mudou para `classForgeRoguelikeSaveV42`, evitando conflito com saves antigos.
+- As mensagens de erro do Gemini ficaram mais claras.
 
-## Mudanças principais da Beta 4.0
+## Como testar no GitHub Pages
 
-- A aba **Tema do RPG** foi removida.
-- O botão **Modo Demo Roguelike** funciona sem API Key, sem matéria e sem texto/PDF.
-- Antes da aventura, o jogador escolhe uma classe:
-  - **Guerreiro**: aventura equilibrada.
-  - **Arqueiro**: aumenta Questões Múltiplas e poderes relacionados.
-  - **Ladino**: aumenta Questões Rápidas e poderes relacionados.
-  - **Mago**: aumenta Questões Científicas e poderes relacionados.
-- O item **Emblema do Grão-Mestre** pode ser equipado antes da aventura.
-- Há quatro tipos de questão:
-  - Questão Padrão.
-  - Questão Múltipla.
-  - Questão Científica.
-  - Questão Rápida.
-- Foram adicionados poderes de run:
-  - Ataque Relâmpago.
-  - Cronômetro.
-  - Cernir.
-  - Visão de Água.
-  - Duas Flechas, Um Coelho.
-  - Linha na Agulha.
-  - Mestre Cuca.
-  - Despojos.
+1. Substitua os arquivos do repositório pelos arquivos desta versão.
+2. Espere o GitHub Pages atualizar.
+3. Abra o site com `Ctrl + F5`.
+4. Escolha uma classe.
+5. Clique em **Modo Demo Roguelike**.
+
+O Modo Demo Roguelike deve abrir o mapa mesmo sem API Key, sem PDF e sem texto.
 
 ## Estrutura
 
-```text
-class_forge_roguelike_v4/
-├── index.html
-├── css/
-│   ├── base.css
-│   ├── layout.css
-│   └── components.css
-└── js/
-    ├── app.js
-    ├── core/
-    │   ├── config.js
-    │   ├── state.js
-    │   └── utils.js
-    ├── game/
-    │   ├── combat.js
-    │   ├── dungeon.js
-    │   └── loot.js
-    ├── services/
-    │   ├── gemini.js
-    │   ├── pdf-exporter.js
-    │   └── pdf-reader.js
-    └── ui/
-        ├── audio.js
-        ├── confetti.js
-        ├── map.js
-        ├── modal.js
-        └── screens.js
+```txt
+index.html
+css/
+  base.css
+  layout.css
+  components.css
+js/
+  app.js
+  core/
+  game/
+  services/
+  ui/
 ```
-
-## Arquivos alterados nesta atualização
-
-- `index.html`
-- `css/components.css`
-- `js/app.js`
-- `js/core/config.js`
-- `js/core/state.js`
-- `js/core/utils.js`
-- `js/game/combat.js`
-- `js/game/dungeon.js`
-- `js/game/loot.js`
-- `js/services/gemini.js`
-- `js/services/pdf-exporter.js`
-- `js/ui/map.js`
-- `js/ui/modal.js`
-- `js/ui/screens.js`
-
-Os outros arquivos continuam compatíveis com a versão anterior.
