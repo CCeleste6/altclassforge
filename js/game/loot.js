@@ -108,8 +108,9 @@
     const pool = [];
     POWER_UPS.forEach(function (power) {
       if (!canReceive(power)) return;
-      const hasPreferredTag = (power.tags || []).some(function (tag) { return preferred.includes(tag); });
-      const copies = hasPreferredTag ? 4 : power.tags.includes('general') ? 2 : 1;
+      const tags = power.tags || [];
+      const hasPreferredTag = tags.some(function (tag) { return preferred.includes(tag); });
+      const copies = hasPreferredTag ? 4 : tags.includes('general') ? 2 : 1;
       for (let i = 0; i < copies; i += 1) pool.push(power);
     });
     return pool.length ? pool : POWER_UPS.filter(canReceive);
@@ -179,12 +180,14 @@
     if (!node) return 0;
     if (node.kind === 'boss') return CONFIG.baseRewards.boss * getRewardMultiplier();
     if (node.kind !== 'battle') return 0;
-    const base = CONFIG.baseRewards[node.questionType] || 10;
+    const type = CF.Dungeon && CF.Dungeon.normalizeQuestionType ? CF.Dungeon.normalizeQuestionType(node.questionType) : (node.questionType || 'standard');
+    const base = CONFIG.baseRewards[type] || 10;
     return Math.round(base * getRewardMultiplier());
   }
 
   function getVisibleOptions(stage, questionType, node) {
-    const source = questionType === 'scientific' ? stage.scientific : questionType === 'quick' ? stage.quick : stage.standard;
+    const safeStage = stage || {};
+    const source = questionType === 'scientific' ? (safeStage.scientific || {}) : questionType === 'quick' ? (safeStage.quick || {}) : (safeStage.standard || {});
     const options = (source.options || []).map(function (text, index) {
       return { text: text, originalIndex: index };
     });
@@ -213,7 +216,7 @@
   function resolveTypeEffects(node, elapsedSeconds) {
     const messages = [];
     const run = CF.State.getRun();
-    const type = node.kind === 'boss' ? (node.bossSteps[node.bossStep] || 'standard') : node.questionType;
+    const type = node.kind === 'boss' ? ((node.bossSteps || [])[node.bossStep] || 'standard') : (node.questionType || 'standard');
 
     if (type === 'quick' && CF.State.hasPower('lightning_attack') && elapsedSeconds <= CONFIG.quickPerfectSeconds) {
       run.flags.lightningReady = true;

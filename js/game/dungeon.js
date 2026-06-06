@@ -88,18 +88,42 @@
     };
   }
 
+  function fallbackClassConfig() {
+    return {
+      label: 'Guerreiro',
+      icon: '🛡️',
+      desc: 'Aventura equilibrada.',
+      weights: { standard: 40, multiple: 20, scientific: 20, quick: 20 },
+      preferredTags: []
+    };
+  }
+
   function getEffectiveClass(settings) {
-    if (settings.emblemEquipped) return CONFIG.grandmaster;
-    return CONFIG.classes[settings.classId] || CONFIG.classes.warrior;
+    const safeSettings = settings || {};
+    const classes = CONFIG.classes || {};
+    if (safeSettings.emblemEquipped && CONFIG.grandmaster) return CONFIG.grandmaster;
+    return classes[safeSettings.classId] || classes.warrior || fallbackClassConfig();
+  }
+
+  function normalizeQuestionType(type) {
+    return (CONFIG.questionTypes && CONFIG.questionTypes[type]) ? type : 'standard';
+  }
+
+  function questionTypeConfig(type) {
+    return (CONFIG.questionTypes && CONFIG.questionTypes[normalizeQuestionType(type)]) || {
+      label: 'Questão Padrão',
+      short: 'Padrão',
+      icon: '⚔️'
+    };
   }
 
   function pickQuestionType(settings, previousType) {
     const classConfig = getEffectiveClass(settings);
-    const weights = Object.assign({}, classConfig.weights);
+    const weights = Object.assign({}, classConfig.weights || fallbackClassConfig().weights);
     if (previousType && CF.State && CF.State.hasPower && CF.State.hasPower('master_chef')) {
       weights[previousType] = 0;
     }
-    return Utils.weightedPick(weights);
+    return normalizeQuestionType(Utils.weightedPick(weights));
   }
 
   function getEventAfterQuestion(questionIndex) {
@@ -138,7 +162,7 @@
     let previousType = null;
 
     for (let stageIndex = 0; stageIndex < questionCount; stageIndex += 1) {
-      const stage = stages[stageIndex];
+      const stage = stages[stageIndex] || normalizeStage({}, stageIndex);
       const isBoss = stageIndex === questionCount - 1;
 
       if (isBoss) {
@@ -149,7 +173,7 @@
           stageIndex: stageIndex,
           bossStep: 0,
           bossSteps: ['standard', 'multiple', 'scientific', 'quick'],
-          title: stage.title.toLowerCase().includes('boss') ? stage.title : `BOSS: ${stage.title}`,
+          title: String(stage.title || '').toLowerCase().includes('boss') ? stage.title : `BOSS: ${stage.title || 'Guardião Final'}`,
           desc: stage.desc,
           completed: false,
           mistakes: 0
@@ -186,20 +210,23 @@
   }
 
   function createRun(stages, settings) {
-    const questionCount = Number(settings.questionCount || 9);
+    const safeSettings = settings || {};
+    const safeStages = Array.isArray(stages) && stages.length ? stages : getDemoStages(Number(safeSettings.questionCount || 9));
+    const questionCount = Number(safeSettings.questionCount || 9);
     const normalizedStages = Array.from({ length: questionCount }, function (_, index) {
-      return normalizeStage(stages[index] || stages[index % stages.length] || {}, index);
+      return normalizeStage(safeStages[index] || safeStages[index % safeStages.length] || {}, index);
     });
     const run = CF.State.createEmptyRun();
-    const classConfig = getEffectiveClass(settings);
-    run.meta.subject = settings.subject || 'Modo livre';
-    run.meta.source = settings.source || 'demo';
-    run.meta.classId = settings.classId || 'warrior';
+    const classConfig = getEffectiveClass(safeSettings);
+    const classId = (CONFIG.classes && CONFIG.classes[safeSettings.classId]) ? safeSettings.classId : 'warrior';
+    run.meta.subject = safeSettings.subject || 'Modo livre';
+    run.meta.source = safeSettings.source || 'demo';
+    run.meta.classId = classId;
     run.meta.classLabel = classConfig.label || 'Guerreiro';
-    run.meta.emblemEquipped = Boolean(settings.emblemEquipped);
+    run.meta.emblemEquipped = Boolean(safeSettings.emblemEquipped);
     run.vouchers = questionCount <= 6 ? 1 : questionCount <= 9 ? 2 : 3;
     run.stages = normalizedStages;
-    run.nodes = buildNodes(normalizedStages, questionCount, settings);
+    run.nodes = buildNodes(normalizedStages, questionCount, safeSettings);
     CF.State.setRun(run);
     CF.State.saveRun();
     return run;
@@ -263,7 +290,7 @@
     weights[previousType] = 0;
     const newType = Utils.weightedPick(weights);
     next.node.questionType = newType;
-    return `Mestre Cuca alterou a próxima questão para ${CONFIG.questionTypes[newType].short}.`;
+    return `Mestre Cuca alterou a próxima questão para ${questionTypeConfig(newType).short}.`;
   }
 
   function autoCompleteNextQuestion(reason) {
@@ -331,6 +358,8 @@
     isUnlocked: isUnlocked,
     isVisible: isVisible,
     isRunComplete: isRunComplete,
-    findNextIncompleteQuestion: findNextIncompleteQuestion
+    findNextIncompleteQuestion: findNextIncompleteQuestion,
+    normalizeQuestionType: normalizeQuestionType,
+    questionTypeConfig: questionTypeConfig
   };
 }());
