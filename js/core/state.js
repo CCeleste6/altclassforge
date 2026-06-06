@@ -35,7 +35,9 @@
         source: 'demo',
         classId: 'warrior',
         classLabel: 'Guerreiro',
-        emblemEquipped: false
+        emblemEquipped: false,
+        modelId: '',
+        usedModel: ''
       },
       hp: 100,
       maxHp: 100,

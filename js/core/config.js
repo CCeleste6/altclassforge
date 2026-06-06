@@ -2,11 +2,42 @@
   window.CF = window.CF || {};
 
   CF.CONFIG = {
-    version: '4.2.0-hotfix-demo-offline',
-    saveKey: 'classForgeRoguelikeSaveV42',
-    legacySaveKeys: ['classForgeSave', 'classForgeRoguelikeSave', 'classForgeRoguelikeSaveV4', 'classForgeRoguelikeSaveV41'],
+    version: '4.3.0-hotfix-ai-stable',
+    saveKey: 'classForgeRoguelikeSaveV43',
+    legacySaveKeys: [
+      'classForgeSave',
+      'classForgeRoguelikeSave',
+      'classForgeRoguelikeSaveV4',
+      'classForgeRoguelikeSaveV41',
+      'classForgeRoguelikeSaveV42'
+    ],
     maxPdfPages: 6,
-    geminiModel: 'gemini-2.5-flash',
+
+    // O modo "pra valer" usa o primeiro modelo selecionado e, se houver 429/500/503/504,
+    // tenta modelos alternativos automaticamente antes de desistir.
+    geminiModel: 'gemini-2.5-flash-lite',
+    geminiModels: [
+      {
+        id: 'gemini-2.5-flash-lite',
+        label: 'Estável - Gemini 2.5 Flash-Lite',
+        desc: 'Mais leve e rápido. Recomendado para GitHub Pages e teste real.'
+      },
+      {
+        id: 'gemini-2.5-flash',
+        label: 'Qualidade - Gemini 2.5 Flash',
+        desc: 'Melhor qualidade geral, mas pode sobrecarregar mais vezes.'
+      },
+      {
+        id: 'gemini-flash-latest',
+        label: 'Automático - Gemini Flash Latest',
+        desc: 'Alias do Google para a versão Flash mais recente.'
+      }
+    ],
+    geminiFallbackModels: ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-flash-latest'],
+    geminiMaxAttemptsPerModel: 2,
+    geminiRetryBaseDelayMs: 900,
+    geminiRequestTimeoutMs: 45000,
+
     baseWrongDamage: 15,
     quickBaseSeconds: 25,
     quickPerfectSeconds: 10,
