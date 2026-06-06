@@ -2,8 +2,9 @@
   window.CF = window.CF || {};
 
   CF.CONFIG = {
-    version: '4.0.0-classes-questions',
-    saveKey: 'classForgeRoguelikeSaveV4',
+    version: '4.1.1-hotfix-demo',
+    saveKey: 'classForgeRoguelikeSaveV41',
+    legacySaveKeys: ['classForgeSave', 'classForgeRoguelikeSave', 'classForgeRoguelikeSaveV4'],
     maxPdfPages: 6,
     geminiModel: 'gemini-2.5-flash',
     baseWrongDamage: 15,
